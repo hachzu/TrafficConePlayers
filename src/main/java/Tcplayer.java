@@ -10,7 +10,10 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetSocketAddress;
+import com.sun.net.httpserver.HttpServer;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -25,6 +28,16 @@ public class Tcplayer {
 	// file management , and yada yada yada alot of these are going to change if Tcplayer becomes a object
 
 	public static void main(String[] args) {
+		HttpServer pageServer;
+		try {
+			pageServer = startPageServer();
+		} catch (IOException exception) {
+			JOptionPane.showMessageDialog(null, "Could not start the local video page: " + exception.getMessage(),
+					"Traffic Cone Player", JOptionPane.ERROR_MESSAGE);
+			return;
+		}
+		String playerPageUrl = "http://localhost:" + pageServer.getAddress().getPort() + "/";
+
 		SwingUtilities.invokeLater(() -> {
 			
 		
@@ -144,6 +157,12 @@ public class Tcplayer {
 		
 		mainframe.setVisible(true);
 		mainframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		mainframe.addWindowListener(new java.awt.event.WindowAdapter() {
+			@Override
+			public void windowClosing(java.awt.event.WindowEvent event) {
+				pageServer.stop(0);
+			}
+		});
 
 		
 		Platform.runLater(() -> {
@@ -157,14 +176,35 @@ public class Tcplayer {
 
 
 			
-    		File htmlFile = new File("src/main/resources/assets/embed.html"); 
-			engine.load(htmlFile.toURI().toString());
+			engine.load(playerPageUrl);
 
     		Scene scene = new Scene(webView);
     		jfxpanel.setScene(scene);
 			});
 		});
 
+	}
+
+	private static HttpServer startPageServer() throws IOException {
+		HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
+		server.createContext("/", exchange -> {
+			byte[] page;
+			try (InputStream resource = Tcplayer.class.getResourceAsStream("/assets/embed.html")) {
+				if (resource == null) {
+					exchange.sendResponseHeaders(404, -1);
+					return;
+				}
+				page = resource.readAllBytes();
+			}
+			exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
+			exchange.getResponseHeaders().set("Cache-Control", "no-store");
+			exchange.sendResponseHeaders(200, page.length);
+			try (var response = exchange.getResponseBody()) {
+				response.write(page);
+			}
+		});
+		server.start();
+		return server;
 	}
 	
 
