@@ -80,15 +80,15 @@ public class TrafficConePlayerWindow {
 
 			JPanel utilitybar = new JPanel();
 			utilitybar.setPreferredSize(new Dimension( 100 , 50));
-			utilitybar.setLayout( new BoxLayout(utilitybar , BoxLayout.Y_AXIS));
+			utilitybar.setLayout(new BorderLayout());
 
 			JPanel buttonbar = new JPanel();
 			buttonbar.setLayout( new BoxLayout(buttonbar , BoxLayout.X_AXIS));
 			buttonbar.add(playbutton);
 			buttonbar.add(back);
 			buttonbar.add(next);
-			utilitybar.add(videoslider);
-			utilitybar.add(buttonbar);
+			utilitybar.add(videoslider, BorderLayout.NORTH);
+			utilitybar.add(buttonbar, BorderLayout.SOUTH);
 
 			// sidebar settings
 			JPanel sidebar = new JPanel();
