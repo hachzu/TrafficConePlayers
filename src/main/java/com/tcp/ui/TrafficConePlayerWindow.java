@@ -4,7 +4,6 @@ import com.tcp.web.LocalPageServer;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
@@ -79,16 +78,6 @@ public class TrafficConePlayerWindow {
 			JButton profilesButton = new JButton("Profiles");
 			JButton shopButton = new JButton("Shop");
 			JButton otherButton = new JButton("Other");
-			otherButton.setToolTipText("Open a local MP3 or MP4 file");
-			otherButton.addActionListener(event -> {
-				JFileChooser chooser = new JFileChooser();
-				chooser.setFileFilter(new FileNameExtensionFilter("Audio and video files (*.mp3, *.mp4)", "mp3", "mp4"));
-				if (chooser.showOpenDialog(mainframe) == JFileChooser.APPROVE_OPTION) {
-					isPlaying[0] = false;
-					playButton.setText("Play");
-					mediaPlayerView.openLocalMedia(chooser.getSelectedFile());
-				}
-			});
 
 			JPanel utilitybar = new JPanel();
 			utilitybar.setPreferredSize(new Dimension( 100 , 50));
