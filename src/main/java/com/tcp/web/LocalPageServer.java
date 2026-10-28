@@ -1,3 +1,5 @@
+package com.tcp.web;
+
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
@@ -12,7 +14,7 @@ public class LocalPageServer implements AutoCloseable {
 		server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
 		server.createContext("/", exchange -> {
 			byte[] page;
-			try (InputStream resource = LocalPageServer.class.getResourceAsStream("/assets/embed.html")) {
+			try (InputStream resource = LocalPageServer.class.getResourceAsStream("/assets/web/embed.html")) {
 				if (resource == null) {
 					exchange.sendResponseHeaders(404, -1);
 					exchange.close();

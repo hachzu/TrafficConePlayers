@@ -1,13 +1,16 @@
+package com.tcp.ui;
+
+import com.tcp.web.LocalPageServer;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-public class Tcplayer {
+public class TrafficConePlayerWindow {
 	
 	// the real challenge would be implementing the other features like Video manipulation 
-	// file management , and yada yada yada alot of these are going to change if Tcplayer becomes a object
+	// file management , and yada yada yada alot of these are going to change if TrafficConePlayerWindow becomes a object
 
 	public static void main(String[] args) {
 		LocalPageServer pageServer;
