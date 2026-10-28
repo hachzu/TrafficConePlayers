@@ -94,6 +94,16 @@ public class TrafficConePlayerWindow {
 			JPanel sidebar = new JPanel();
 			sidebar.setBackground(Color.green);
 			sidebar.setPreferredSize(new Dimension ( 300 , 400));
+			sidebar.setLayout(new GridLayout(2, 4, 12, 12));
+			for (int i = 0; i < 8; i++) {
+				JButton placeholderButton = new JButton();
+				placeholderButton.setOpaque(true);
+				placeholderButton.setBackground(new Color(255, 80, 80));
+				placeholderButton.setBorderPainted(false);
+				placeholderButton.setFocusPainted(false);
+				placeholderButton.setFocusable(false);
+				sidebar.add(placeholderButton);
+			}
 			//sidebar components 
 
 			// bottom bar components like information and stuff
