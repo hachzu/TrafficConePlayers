@@ -4,6 +4,7 @@ import com.tcp.web.LocalPageServer;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
@@ -35,24 +36,22 @@ public class TrafficConePlayerWindow {
 			// code about media or just video manipulation and etc..
 			JPanel videopanel = new JPanel();
 			videopanel.setLayout(new BorderLayout());
-			YouTubeWebView jfxpanel = new YouTubeWebView(pageServer.getUrl());
-			videopanel.add(jfxpanel , BorderLayout.CENTER);
+			JLabel mediaName = new JLabel("Loading media...");
+			JLabel mediaAuthor = new JLabel("Author: Loading...");
+			MediaPlayerView mediaPlayerView = new MediaPlayerView(pageServer.getUrl(), (title, artist) -> {
+				mediaName.setText(title);
+				mediaAuthor.setText("Author: " + artist);
+			});
+			videopanel.add(mediaPlayerView , BorderLayout.CENTER);
 
 			// honestly we could either go JButton or JPanel with event listeners
-			JButton playbutton = new JButton();
-			playbutton.addActionListener ((ActionEvent e) -> {
-				// code to manipulate timeline / pause or play videos
-				// code to change icon
-				// etc..
-				if (playbutton.getText().equals("pause")){
-					playbutton.setText("play");
-					System.out.println("playing");
-				}else {
-					playbutton.setText("pause");
-					System.out.println("paused");
-				}
+			JButton playButton = new JButton("Play");
+			boolean[] isPlaying = {false};
+			playButton.addActionListener((ActionEvent e) -> {
+				isPlaying[0] = !isPlaying[0];
+				mediaPlayerView.setPlaying(isPlaying[0]);
+				playButton.setText(isPlaying[0] ? "Pause" : "Play");
 			});
-			playbutton.setText("play");
 
 			JSlider videoslider = new JSlider();
 			videoslider.addChangeListener( new ChangeListener(){
@@ -64,47 +63,62 @@ public class TrafficConePlayerWindow {
 				}
 			});
 
-			JButton next = new JButton();
-			next.addActionListener((ActionEvent e) -> {
+			JButton nextButton = new JButton("Next");
+			nextButton.addActionListener((ActionEvent e) -> {
 				// playnext logic
 				System.out.println("Clicked Next");
 			});
-			next.setText("next");
 
-			JButton back = new JButton();
-			back.addActionListener((ActionEvent e)-> {
+			JButton previousButton = new JButton("Previous");
+			previousButton.addActionListener((ActionEvent e)-> {
 				// playlast logic 
 				System.out.println("Clicked Back");
 			});
-			back.setText("back");
+
+			JButton shuffleButton = new JButton("Shuffle");
+			JButton profilesButton = new JButton("Profiles");
+			JButton shopButton = new JButton("Shop");
+			JButton otherButton = new JButton("Other");
+			otherButton.setToolTipText("Open a local MP3 or MP4 file");
+			otherButton.addActionListener(event -> {
+				JFileChooser chooser = new JFileChooser();
+				chooser.setFileFilter(new FileNameExtensionFilter("Audio and video files (*.mp3, *.mp4)", "mp3", "mp4"));
+				if (chooser.showOpenDialog(mainframe) == JFileChooser.APPROVE_OPTION) {
+					isPlaying[0] = false;
+					playButton.setText("Play");
+					mediaPlayerView.openLocalMedia(chooser.getSelectedFile());
+				}
+			});
 
 			JPanel utilitybar = new JPanel();
 			utilitybar.setPreferredSize(new Dimension( 100 , 50));
 			utilitybar.setLayout(new BorderLayout());
 
-			JPanel buttonbar = new JPanel();
-			buttonbar.setLayout( new BoxLayout(buttonbar , BoxLayout.X_AXIS));
-			buttonbar.add(playbutton);
-			buttonbar.add(back);
-			buttonbar.add(next);
+			JPanel buttonbar = new JPanel(new BorderLayout());
+			JPanel playbackButtons = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			playbackButtons.add(previousButton);
+			playbackButtons.add(playButton);
+			playbackButtons.add(nextButton);
+			playbackButtons.add(shuffleButton);
+			JPanel extraButtons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+			extraButtons.add(shopButton);
+			extraButtons.add(profilesButton);
+			extraButtons.add(otherButton);
+			buttonbar.add(playbackButtons, BorderLayout.WEST);
+			buttonbar.add(extraButtons, BorderLayout.EAST);
 			utilitybar.add(videoslider, BorderLayout.NORTH);
 			utilitybar.add(buttonbar, BorderLayout.SOUTH);
 
 			// sidebar settings
-			JPanel sidebar = new JPanel();
+			JPanel sidebar = new JPanel(new BorderLayout());
 			sidebar.setBackground(Color.green);
 			sidebar.setPreferredSize(new Dimension ( 300 , 400));
-			sidebar.setLayout(new GridLayout(2, 4, 12, 12));
-			for (int i = 0; i < 8; i++) {
-				JButton placeholderButton = new JButton();
-				placeholderButton.setOpaque(true);
-				placeholderButton.setBackground(new Color(255, 80, 80));
-				placeholderButton.setBorderPainted(false);
-				placeholderButton.setFocusPainted(false);
-				placeholderButton.setFocusable(false);
-				sidebar.add(placeholderButton);
-			}
 			//sidebar components 
+
+			JPanel mediaInfo = new JPanel(new GridLayout(2, 1));
+			mediaInfo.add(mediaName);
+			mediaInfo.add(mediaAuthor);
+			sidebar.add(mediaInfo, BorderLayout.NORTH);
 
 			// bottom bar components like information and stuff
 			mainpanel.add(videopanel , BorderLayout.CENTER);

@@ -17,9 +17,59 @@
             height: 100%;
             border: 0;
         }
+        #youtube-player {
+            width: 100%;
+            height: 100%;
+        }
     </style>
 </head>
 <body>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/cY0qV7q9IC4?si=8J4D9nDHiuAvBkxc&autoplay=1&controls=1" title="YouTube video player" frameborder="0" allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+    <div id="youtube-player"></div>
+    <script>
+        let player;
+        const videoId = "cY0qV7q9IC4";
+
+        function setMediaInfo(title, channelName) {
+            if (title) document.body.dataset.mediaTitle = title;
+            if (channelName) document.body.dataset.mediaAuthor = channelName;
+            if (title) document.title = title + " | " + (channelName || "Loading channel...");
+        }
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player("youtube-player", {
+                width: "100%",
+                height: "100%",
+                videoId: videoId,
+                playerVars: {
+                    autoplay: 1,
+                    controls: 1,
+                    enablejsapi: 1,
+                    origin: window.location.origin
+                },
+                events: {
+                    onReady: updateMediaName,
+                    onStateChange: updateMediaName
+                }
+            });
+
+            fetch("https://www.youtube.com/oembed?url=" +
+                    encodeURIComponent("https://www.youtube.com/watch?v=" + videoId) + "&format=json")
+                .then(response => response.json())
+                .then(videoInfo => setMediaInfo(videoInfo.title, videoInfo.author_name))
+                .catch(() => updateMediaName());
+        }
+
+        // Read the channel from YouTube's metadata, with the player data as a fallback.
+        function updateMediaName() {
+            if (player) {
+                const videoData = player.getVideoData() || {};
+                setMediaInfo(videoData.title, videoData.author);
+            }
+        }
+
+        const youtubeApi = document.createElement("script");
+        youtubeApi.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(youtubeApi);
+    </script>
 </body>
 </html>
