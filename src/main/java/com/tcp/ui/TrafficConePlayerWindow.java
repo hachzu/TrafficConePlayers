@@ -1,11 +1,13 @@
 package com.tcp.ui;
 
+import com.tcp.data.DatabaseConnection;
 import com.tcp.web.LocalPageServer;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
+import java.sql.SQLException;
 
 public class TrafficConePlayerWindow {
 	
@@ -13,6 +15,10 @@ public class TrafficConePlayerWindow {
 	// file management , and yada yada yada alot of these are going to change if TrafficConePlayerWindow becomes a object
 
 	public static void main(String[] args) {
+		Thread databaseCheck = new Thread(TrafficConePlayerWindow::checkDatabaseConnection, "database-check");
+		databaseCheck.setDaemon(true);
+		databaseCheck.start();
+
 		LocalPageServer pageServer;
 		try {
 			pageServer = new LocalPageServer();
@@ -126,5 +132,14 @@ public class TrafficConePlayerWindow {
 			});
 			mainframe.setVisible(true);
 		});
+	}
+
+	private static void checkDatabaseConnection() {
+		try {
+			int mediaCount = DatabaseConnection.checkMediaTable();
+			System.out.println("MySQL connected. Media rows: " + mediaCount);
+		} catch (SQLException exception) {
+			System.err.println("MySQL connection not available: " + exception.getMessage());
+		}
 	}
 }
