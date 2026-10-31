@@ -83,17 +83,28 @@ public class Tcplayer {
 			webplayer.pauseVideo();
 		});
 			
-		
+
+		JSlider audioslider = new JSlider();
+
+		audioslider.addChangeListener(new ChangeListener(){
+			@Override
+		    public void stateChanged(ChangeEvent e) {
+		    	int audiovalue = audioslider.getValue();
+		    	System.out.println(audiovalue);
+				
+				webplayer.setVolume(audiovalue);
+		    }
+		});
 		
 		JSlider videoslider = new JSlider();
 		
 		videoslider.addChangeListener( new ChangeListener(){
 		    @Override
 		    public void stateChanged(ChangeEvent e) {
-		    	int audiovalue = videoslider.getValue();
-		    	System.out.println(audiovalue);
-
-				webplayer.setVolume(audiovalue);
+		    	int timelinevalue = videoslider.getValue();
+		    	System.out.println(timelinevalue);
+				
+				webplayer.setTimeline(timelinevalue);
 		    }
 		});
 		
@@ -115,6 +126,13 @@ public class Tcplayer {
 		
 		back.setText("back");
 		
+		JPanel terminal = new JPanel();
+		terminal.setPreferredSize(new Dimension( 100 , 50));
+		terminal.setBackground(Color.BLACK);
+
+		JPanel grid = new JPanel();
+		grid.setPreferredSize(new Dimension( 100 , 50));
+		grid.setBackground(Color.PINK);
 		
 		JPanel utilitybar = new JPanel();
 		utilitybar.setPreferredSize(new Dimension( 100 , 50));
@@ -136,7 +154,10 @@ public class Tcplayer {
 		JPanel sidebar = new JPanel();
 		sidebar.setBackground(Color.green);
 		sidebar.setPreferredSize(new Dimension ( 300 , 400));
-		
+		sidebar.setLayout(new BoxLayout(sidebar , BoxLayout.Y_AXIS));
+		sidebar.add(terminal);
+		sidebar.add(audioslider);
+		sidebar.add(grid);
 		//sidebar components 
 		
 				

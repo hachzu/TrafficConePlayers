@@ -46,12 +46,37 @@ public class WebPlayer extends JFXPanel{
         runJavaScript("unmuteYouTubeVideo()");
     }
 
-    public void seekTo(double seconds) {
-        if (!Double.isFinite(seconds) || seconds < 0) {
+    public void getDuration(java.util.function.Consumer<Double> callback) {
+    Platform.runLater(() -> {
+        if (engine == null) {
+            callback.accept(0.0);
+            return;
+        }
+
+        Object result = engine.executeScript("getYouTubeDuration()");
+
+        double duration = result instanceof Number
+                ? ((Number) result).doubleValue()
+                : 0.0;
+
+        callback.accept(duration);
+        });
+    }
+
+    public void setTimeline(double percentage) {
+        if (!Double.isFinite(percentage)
+            || percentage < 0
+            || percentage > 1) {
         return;
     }
 
-    runJavaScript("seekYouTubeVideo(" + seconds + ")");
+    getDuration(duration -> {
+        if (duration <= 0) {
+            return;
+        }
+         runJavaScript("setTimeline(" + percentage + ")");
+    });
+
     }
 
     /* literally just calls the execution thread and executes the script's in the 
