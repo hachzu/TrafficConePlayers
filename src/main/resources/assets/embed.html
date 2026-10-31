@@ -9,7 +9,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            background: rgb(240, 233, 233);
+            background: rgb(255, 255, 255);
         }
         iframe {
             display: block;
@@ -20,6 +20,75 @@
     </style>
 </head>
 <body>
-    <iframe width="560" height="315" src="https://www.youtube.com/embed/cY0qV7q9IC4?si=8J4D9nDHiuAvBkxc&autoplay=1&mute=1" title="YouTube video player" frameborder="0" allow="autoplay; accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-</body>
+    <div id="player-container"></div>
+        <script>
+            var player
+            var playerReady = false;
+
+            function onYouTubeIframeAPIReady() {
+            player = new YT.Player("player-container", {
+                width: "100%",
+                height: "100%",
+                videoId: "cY0qV7q9IC4",
+                playerVars: {
+                    autoplay: 1,
+                    mute: 1,
+                    playsinline: 1,
+                    origin: window.location.origin
+                },
+                events: {
+                    onReady: function(event) {
+                        playerReady = true;
+                        console.log("YouTube player ready");
+                    }
+                }
+            });
+        }
+
+        function playYouTubeVideo() {
+            if (playerReady) player.playVideo();
+        }
+
+        function pauseYouTubeVideo() {
+            if (playerReady) player.pauseVideo();
+        }
+
+        // Volume: 0 to 100
+        function setYouTubeVolume(value) {
+            if (playerReady) {
+                player.setVolume(value);
+            }
+        }
+
+        function muteYouTubeVideo() {
+            if (playerReady) player.mute();
+        }
+
+        function unmuteYouTubeVideo() {
+            if (playerReady) player.unMute();
+        }
+
+        // Seek to a position in seconds
+        function setTimeline(seconds) {
+            if (playerReady) {
+                player.seekTo(seconds, true);
+            }
+        }
+
+        // Return current playback position in seconds
+        function getYouTubeCurrentTime() {
+            return playerReady ? player.getCurrentTime() : 0;
+        }
+
+        // Return total duration in seconds
+        function getYouTubeDuration() {
+            return playerReady ? player.getDuration() : 0;
+        }
+
+        var tag = document.createElement("script");
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+
+
+        </script>
 </html>

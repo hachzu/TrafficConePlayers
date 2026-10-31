@@ -1,0 +1,24 @@
+import com.sun.net.httpserver.HttpServer;
+
+public class ServerContext extends HttpContext {
+    private final HttpServer server;
+    String path;
+    String response;
+    
+    
+    public ServerContext(HttpServer server) {
+        super(server, "/");
+        this.server = server;
+    }
+    
+    @Override
+    public void handle(HttpExchange exchange) throws IOException {
+        // Handle the request here
+        String response = "Hello from ServerContext!";
+        exchange.sendResponseHeaders(200, response.length());
+        try (var os = exchange.getResponseBody()) {
+            os.write(response.getBytes());
+        }
+    }
+
+}

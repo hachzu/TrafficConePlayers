@@ -1,3 +1,5 @@
+package ui;
+
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
@@ -9,6 +11,8 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.stage.Stage;
+
+import web.LocalServer;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,16 +32,15 @@ public class Tcplayer {
 	// file management , and yada yada yada alot of these are going to change if Tcplayer becomes a object
 
 	public static void main(String[] args) {
-		HttpServer pageServer;
+		LocalServer pageServer;
 		try {
-			pageServer = startPageServer();
-		} catch (IOException exception) {
-			JOptionPane.showMessageDialog(null, "Could not start the local video page: " + exception.getMessage(),
-					"Traffic Cone Player", JOptionPane.ERROR_MESSAGE);
-			return;
+			pageServer = new LocalServer(8080);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
-		String playerPageUrl = "http://localhost:" + pageServer.getAddress().getPort() + "/";
 
+		WebPlayer webplayer = new WebPlayer(pageServer.getURL());
+	
 		SwingUtilities.invokeLater(() -> {
 			
 		
@@ -56,33 +59,30 @@ public class Tcplayer {
 		JPanel videopanel = new JPanel();
 
 			videopanel.setLayout(new BorderLayout());
-			JFXPanel jfxpanel = new JFXPanel();
 			
 			
-			videopanel.add(jfxpanel , BorderLayout.CENTER);
+			videopanel.add(webplayer , BorderLayout.CENTER);
 			
 		
 		// honestly we could either go JButton or JPanel with event listeners
 		
 		JButton playbutton = new JButton();
-		
+		playbutton.setText("play");
+
 		playbutton.addActionListener ((ActionEvent e) -> {
-			
-			// code to manipulate timeline / pause or play videos
-			// code to change icon
-			// etc..
-			
-			
-			if (playbutton.getText().equals("pause")){
-			playbutton.setText("play");
 			System.out.println("playing");
-			}else {
-			playbutton.setText("pause");
+			webplayer.playVideo();
+		});
+
+		
+		JButton pausebutton = new JButton();
+		pausebutton.setText("pause");
+
+		pausebutton.addActionListener ((ActionEvent e) -> {	
 			System.out.println("paused");
-			}
+			webplayer.pauseVideo();
 		});
 			
-			playbutton.setText("play");
 		
 		
 		JSlider videoslider = new JSlider();
@@ -90,9 +90,10 @@ public class Tcplayer {
 		videoslider.addChangeListener( new ChangeListener(){
 		    @Override
 		    public void stateChanged(ChangeEvent e) {
-		    	// Volume Changing Logic
 		    	int audiovalue = videoslider.getValue();
 		    	System.out.println(audiovalue);
+
+				webplayer.setVolume(audiovalue);
 		    }
 		});
 		
@@ -122,8 +123,9 @@ public class Tcplayer {
 
 		JPanel buttonbar = new JPanel();
 		buttonbar.setLayout( new BoxLayout(buttonbar , BoxLayout.X_AXIS));
-		buttonbar.add(playbutton);
 		buttonbar.add(back);
+		buttonbar.add(playbutton);
+		buttonbar.add(pausebutton);
 		buttonbar.add(next);
 		
 		
@@ -158,54 +160,22 @@ public class Tcplayer {
 		mainframe.setVisible(true);
 		mainframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		mainframe.addWindowListener(new java.awt.event.WindowAdapter() {
-			@Override
-			public void windowClosing(java.awt.event.WindowEvent event) {
-				pageServer.stop(0);
-			}
 		});
+		
 
 		
 		Platform.runLater(() -> {
-   			 WebView webView = new WebView();
-   			 WebEngine engine = webView.getEngine();
-
-    		webView.setContextMenuEnabled(true);
-    		webView.setZoom(1.0);
-
-    		engine.setJavaScriptEnabled(true);
-
-
+   	
+    		webplayer.loadURL(pageServer.getURL());
 			
-			engine.load(playerPageUrl);
-
-    		Scene scene = new Scene(webView);
-    		jfxpanel.setScene(scene);
 			});
+
 		});
 
 	}
 
-	private static HttpServer startPageServer() throws IOException {
-		HttpServer server = HttpServer.create(new InetSocketAddress("localhost", 0), 0);
-		server.createContext("/", exchange -> {
-			byte[] page;
-			try (InputStream resource = Tcplayer.class.getResourceAsStream("/assets/embed.html")) {
-				if (resource == null) {
-					exchange.sendResponseHeaders(404, -1);
-					return;
-				}
-				page = resource.readAllBytes();
-			}
-			exchange.getResponseHeaders().set("Content-Type", "text/html; charset=UTF-8");
-			exchange.getResponseHeaders().set("Cache-Control", "no-store");
-			exchange.sendResponseHeaders(200, page.length);
-			try (var response = exchange.getResponseBody()) {
-				response.write(page);
-			}
-		});
-		server.start();
-		return server;
-	}
+	
+	
 	
 
 }
