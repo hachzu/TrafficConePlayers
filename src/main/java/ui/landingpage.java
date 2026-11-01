@@ -4,6 +4,8 @@ package ui;
 import java.awt.*;
 import javax.swing.*;
 
+import ui.TCPScripts.TCPlayer;
+
 public class landingpage extends JPanel {
 
     private final Image background = new ImageIcon(
@@ -24,7 +26,7 @@ public class landingpage extends JPanel {
         continueButton.setBorder(BorderFactory.createLineBorder(Color.BLACK, 3, true));
         continueButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         continueButton.addActionListener(e -> {
-            Tcplayer.main(new String[0]);                                 // Add or change app-opening code here.
+            TCPlayer.main(new String[0]);                                 // Add or change app-opening code here.
             SwingUtilities.getWindowAncestor(this).dispose();             // Closes the landing window.
         });
 

@@ -1,4 +1,4 @@
-package ui;
+package ui.TCPScripts;
 
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 
 import web.LocalServer;
 
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -26,12 +27,18 @@ import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 
-public class Tcplayer {
+public class TCPlayer {
 	
 	// the real challenge would be implementing the other features like Video manipulation 
 	// file management , and yada yada yada alot of these are going to change if Tcplayer becomes a object
 
 	public static void main(String[] args) {
+
+		// Value initialization for the dimensions of the TCP! and its components
+		Dimension side = new Dimension ( 300 , 400);
+		Dimension tcp = new Dimension ( 800 , 400);
+		Dimension bottom = new Dimension ( 300 , 400);
+
 		LocalServer pageServer;
 		try {
 			pageServer = new LocalServer(8080);
@@ -43,31 +50,28 @@ public class Tcplayer {
 	
 		SwingUtilities.invokeLater(() -> {
 			
-		
+		// The Whole Frame of the TCP
 		JFrame mainframe = new JFrame();
 		// Default dimensions 
-		mainframe.setSize(new Dimension (800 , 400));
+		mainframe.setSize(tcp);
 		mainframe.setBackground(Color.CYAN);
 		
+		// C1 
 		
 		JPanel mainpanel = new JPanel();
 		mainpanel.setBackground(Color.gray);
 		mainpanel.setLayout( new BorderLayout());
 		
 		
-		// code about media or just video manipulation and etc..
+		// C1 - 1 Video Panel
 		JPanel videopanel = new JPanel();
-
-			videopanel.setLayout(new BorderLayout());
-			
-			
-			videopanel.add(webplayer , BorderLayout.CENTER);
+		videopanel.setLayout(new BorderLayout());
+		videopanel.add(webplayer , BorderLayout.CENTER);
 			
 		
-		// honestly we could either go JButton or JPanel with event listeners
 		
-		JButton playbutton = new JButton();
-		playbutton.setText("play");
+		// C3 - 2 - Buttons & Timeline Slider 
+		TCPButton playbutton = new TCPButton("Play");
 
 		playbutton.addActionListener ((ActionEvent e) -> {
 			System.out.println("playing");
@@ -75,16 +79,63 @@ public class Tcplayer {
 		});
 
 		
-		JButton pausebutton = new JButton();
-		pausebutton.setText("pause");
+		TCPButton pausebutton = new TCPButton("Pause");
 
 		pausebutton.addActionListener ((ActionEvent e) -> {	
 			System.out.println("paused");
 			webplayer.pauseVideo();
 		});
 			
+		
+		TCPSlider videoslider = new TCPSlider();
+			videoslider.addChangeListener(e -> {
+    			if (!videoslider.getValueIsAdjusting()) {
+        			double percentage = videoslider.getValue() / 100.0;
+        			webplayer.setTimeline(percentage);
+    			}
+			});
+		
+		
+		TCPButton next = new TCPButton("Next");
+			
+		next.addActionListener((ActionEvent e) -> {
+			// playnext logic
+			System.out.println("Clicked Next");
+		});
+		
+		TCPButton back = new TCPButton("Back");
+		
+		back.addActionListener((ActionEvent e)-> {
+			// playlast logic 
+			System.out.println("Clicked Back");
+		});
+		
+		// C3 - Buttons & Timeline Panel
+		JPanel utilitybar = new JPanel();
+		utilitybar.setPreferredSize(new Dimension( 100 , 50));
+		utilitybar.setLayout( new BoxLayout(utilitybar , BoxLayout.Y_AXIS));
+		utilitybar.setBackground(Color.CYAN);
 
-		JSlider audioslider = new JSlider();
+		// Buttonbar is set as opaque so as to not bother the background of utilitybar 
+		JPanel buttonbar = new JPanel();
+		buttonbar.setLayout( new BoxLayout(buttonbar , BoxLayout.X_AXIS));
+		buttonbar.setOpaque(true);
+		buttonbar.add(back);
+		buttonbar.add(playbutton);
+		buttonbar.add(pausebutton);
+		buttonbar.add(next);
+		
+		// C3 - 1 - Timeline
+		
+		utilitybar.add(videoslider);
+
+		// C3 - 2 - Buttons
+		utilitybar.add(buttonbar);
+
+
+
+
+		TCPSlider audioslider = new TCPSlider();
 
 		audioslider.addChangeListener(new ChangeListener(){
 			@Override
@@ -95,37 +146,9 @@ public class Tcplayer {
 				webplayer.setVolume(audiovalue);
 		    }
 		});
-		
-		JSlider videoslider = new JSlider();
-		
-		videoslider.addChangeListener( new ChangeListener(){
-		    @Override
-		    public void stateChanged(ChangeEvent e) {
-		    	int timelinevalue = videoslider.getValue();
-		    	System.out.println(timelinevalue);
-				
-				webplayer.setTimeline(timelinevalue);
-		    }
-		});
-		
-		JButton next = new JButton();
-			
-		next.addActionListener((ActionEvent e) -> {
-			// playnext logic
-			System.out.println("Clicked Next");
-		});
-		
-		next.setText("next");
-		
-		JButton back = new JButton();
-		
-		back.addActionListener((ActionEvent e)-> {
-			// playlast logic 
-			System.out.println("Clicked Back");
-		});
-		
-		back.setText("back");
-		
+
+
+		// C2  - Terminal and Grid
 		JPanel terminal = new JPanel();
 		terminal.setPreferredSize(new Dimension( 100 , 50));
 		terminal.setBackground(Color.BLACK);
@@ -134,30 +157,17 @@ public class Tcplayer {
 		grid.setPreferredSize(new Dimension( 100 , 50));
 		grid.setBackground(Color.PINK);
 		
-		JPanel utilitybar = new JPanel();
-		utilitybar.setPreferredSize(new Dimension( 100 , 50));
-		utilitybar.setLayout( new BoxLayout(utilitybar , BoxLayout.Y_AXIS));
 		
-
-		JPanel buttonbar = new JPanel();
-		buttonbar.setLayout( new BoxLayout(buttonbar , BoxLayout.X_AXIS));
-		buttonbar.add(back);
-		buttonbar.add(playbutton);
-		buttonbar.add(pausebutton);
-		buttonbar.add(next);
-		
-		
-		utilitybar.add(videoslider);
-		utilitybar.add(buttonbar);
 		
 		// sidebar settings
 		JPanel sidebar = new JPanel();
 		sidebar.setBackground(Color.green);
-		sidebar.setPreferredSize(new Dimension ( 300 , 400));
 		sidebar.setLayout(new BoxLayout(sidebar , BoxLayout.Y_AXIS));
 		sidebar.add(terminal);
 		sidebar.add(audioslider);
 		sidebar.add(grid);
+
+
 		//sidebar components 
 		
 				
@@ -189,14 +199,26 @@ public class Tcplayer {
    	
     		webplayer.loadURL(pageServer.getURL());
 			
-			});
-
 		});
 
+
+		new javax.swing.Timer(250, e -> {
+    		webplayer.getDuration(duration -> {
+        		webplayer.getCurrentTime(currentTime -> {
+            		if (duration > 0 && !videoslider.getValueIsAdjusting()) {
+                		int percentage = (int) ((currentTime / duration) * 100);
+
+              			SwingUtilities.invokeLater(() ->
+                    	videoslider.setValue(percentage)
+                		);
+           			}
+        		});
+   		 	});
+		}).start();
+
+
+
+		});
 	}
-
 	
-	
-	
-
 }

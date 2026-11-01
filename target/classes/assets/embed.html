@@ -69,10 +69,12 @@
         }
 
         // Seek to a position in seconds
-        function setTimeline(seconds) {
+        function seekYouTubeVideo(seconds) {
             if (playerReady) {
                 player.seekTo(seconds, true);
+                return "Seek command sent to " + seconds;
             }
+            return "Seek command sent to " + seconds;
         }
 
         // Return current playback position in seconds
