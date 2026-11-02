@@ -53,6 +53,10 @@
             if (playerReady) player.pauseVideo();
         }
 
+        function loadYouTubeVideo(videoId) {
+            if (playerReady) player.loadVideoById(videoId);
+        }
+
         // Volume: 0 to 100
         function setYouTubeVolume(value) {
             if (playerReady) {

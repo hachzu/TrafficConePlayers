@@ -1,116 +1,95 @@
 package ui.TCPScripts;
 
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.scene.Scene;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import javafx.embed.swing.JFXPanel;
-
-import javafx.scene.media.Media;
-import javafx.scene.media.MediaPlayer;
-import javafx.scene.media.MediaView;
-import javafx.stage.Stage;
-
-import web.LocalServer;
-
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetSocketAddress;
-import com.sun.net.httpserver.HttpServer;
+import java.util.function.Consumer;
 
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
 
-public class TCPlayer {
-	
-	// the real challenge would be implementing the other features like Video manipulation 
-	// file management , and yada yada yada alot of these are going to change if Tcplayer becomes a object
+public class TCPlayer extends JPanel{
 
-	public static void main(String[] args) {
+    public interface VideoBackend {
+    JComponent getView();
+    void play();
+    void pause();
+    void seekTo(double seconds);
+    void setVolume(double volume); // 0.0 to 1.0
+    void getDuration(Consumer<Double> callback);
+    void getCurrentTime(Consumer<Double> callback);
+    void nextTrack();
+    void previousTrack();
+    void close();
+    void viewplaylist();
+    }
 
-		// Value initialization for the dimensions of the TCP! and its components
-		Dimension side = new Dimension ( 300 , 400);
-		Dimension tcp = new Dimension ( 800 , 400);
-		Dimension bottom = new Dimension ( 300 , 400);
+    public void setVideoBackend(VideoBackend next) {
+    if (videoBackend != null) {
+        videoPanel.remove(videoBackend.getView());
+        videoBackend.close();
+    }
 
-		LocalServer pageServer;
-		try {
-			pageServer = new LocalServer(8080);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+    videoBackend = next;
+    if (next != null) {
+        videoPanel.add(next.getView(), BorderLayout.CENTER);
+    }
 
-		WebPlayer webplayer = new WebPlayer(pageServer.getURL());
-	
-		SwingUtilities.invokeLater(() -> {
-			
-		// The Whole Frame of the TCP
-		JFrame mainframe = new JFrame();
-		// Default dimensions 
-		mainframe.setSize(tcp);
-		mainframe.setBackground(Color.CYAN);
-		
-		// C1 
-		
-		JPanel mainpanel = new JPanel();
-		mainpanel.setBackground(Color.gray);
-		mainpanel.setLayout( new BorderLayout());
-		
-		
-		// C1 - 1 Video Panel
-		JPanel videopanel = new JPanel();
-		videopanel.setLayout(new BorderLayout());
-		videopanel.add(webplayer , BorderLayout.CENTER);
-			
-		
-		
-		// C3 - 2 - Buttons & Timeline Slider 
+    videoPanel.revalidate();
+    videoPanel.repaint();
+}
+
+    // C1 
+    private VideoBackend videoBackend;
+    private final JPanel mainpanel = new JPanel(new BorderLayout());
+    private final JPanel videoPanel = new JPanel(new BorderLayout());
+
+
+    // TCPlayer constructor
+    public TCPlayer() {
+        setLayout(new BorderLayout());
+        add(mainpanel, BorderLayout.CENTER);
+
+        // C1 - 1 Video Panel
+        mainpanel.add(videoPanel, BorderLayout.CENTER);
+        
+        // C3 - 2 - Buttons & Timeline Slider 
 		TCPButton playbutton = new TCPButton("Play");
 
-		playbutton.addActionListener ((ActionEvent e) -> {
-			System.out.println("playing");
-			webplayer.playVideo();
-		});
+		playbutton.addActionListener(e -> {
+            if (videoBackend != null) videoBackend.play();
+        });
 
 		
 		TCPButton pausebutton = new TCPButton("Pause");
 
-		pausebutton.addActionListener ((ActionEvent e) -> {	
-			System.out.println("paused");
-			webplayer.pauseVideo();
-		});
+		pausebutton.addActionListener(e -> {
+            if (videoBackend != null) videoBackend.pause();
+        });
 			
 		
 		TCPSlider videoslider = new TCPSlider();
 			videoslider.addChangeListener(e -> {
-    			if (!videoslider.getValueIsAdjusting()) {
-        			double percentage = videoslider.getValue() / 100.0;
-        			webplayer.setTimeline(percentage);
-    			}
+				if (!videoslider.getValueIsAdjusting() && videoBackend != null) {
+                    double percentage = videoslider.getValue() / 100.0;
+                    videoBackend.getDuration(duration -> {
+                        if (duration > 0) videoBackend.seekTo(duration * percentage);
+                    });
+				}
 			});
 		
 		
 		TCPButton next = new TCPButton("Next");
 			
-		next.addActionListener((ActionEvent e) -> {
-			// playnext logic
-			System.out.println("Clicked Next");
-		});
+		next.addActionListener(e -> {
+            if (videoBackend != null) videoBackend.nextTrack();
+        });
 		
 		TCPButton back = new TCPButton("Back");
 		
-		back.addActionListener((ActionEvent e)-> {
-			// playlast logic 
-			System.out.println("Clicked Back");
-		});
-		
-		// C3 - Buttons & Timeline Panel
+		back.addActionListener(e -> {
+            if (videoBackend != null) videoBackend.previousTrack();
+        });
+
+        // C3 - Buttons & Timeline Panel
 		JPanel utilitybar = new JPanel();
 		utilitybar.setPreferredSize(new Dimension( 100 , 50));
 		utilitybar.setLayout( new BoxLayout(utilitybar , BoxLayout.Y_AXIS));
@@ -132,23 +111,17 @@ public class TCPlayer {
 		// C3 - 2 - Buttons
 		utilitybar.add(buttonbar);
 
+        TCPSlider audioslider = new TCPSlider();
+
+		audioslider.addChangeListener(e -> {
+            if (videoBackend != null) {
+                videoBackend.setVolume(audioslider.getValue() / 100.0);
+            }
+        });
+
+        // C2  - Terminal and Grid - Swap PlayLogic Button
 
 
-
-		TCPSlider audioslider = new TCPSlider();
-
-		audioslider.addChangeListener(new ChangeListener(){
-			@Override
-		    public void stateChanged(ChangeEvent e) {
-		    	int audiovalue = audioslider.getValue();
-		    	System.out.println(audiovalue);
-				
-				webplayer.setVolume(audiovalue);
-		    }
-		});
-
-
-		// C2  - Terminal and Grid
 		JPanel terminal = new JPanel();
 		terminal.setPreferredSize(new Dimension( 100 , 50));
 		terminal.setBackground(Color.BLACK);
@@ -157,6 +130,26 @@ public class TCPlayer {
 		grid.setPreferredSize(new Dimension( 100 , 50));
 		grid.setBackground(Color.PINK);
 		
+        JButton swap = new JButton("Swap");
+		swap.addActionListener(e -> {
+            if (videoBackend instanceof WebPlayer) {
+                setVideoBackend(new LocalPlayer());
+            } else {
+                try {
+                    setVideoBackend(new WebPlayer());
+                }catch (java.io.IOException ex) {
+                    JOptionPane.showMessageDialog(this,
+                            "Could not start the web player: " + ex.getMessage(),
+                            "Player switch failed",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
+        JButton playlistButton = new JButton("Videos");
+        playlistButton.addActionListener(e -> {
+            if (videoBackend != null) videoBackend.viewplaylist();
+        });
 		
 		
 		// sidebar settings
@@ -165,56 +158,50 @@ public class TCPlayer {
 		sidebar.setLayout(new BoxLayout(sidebar , BoxLayout.Y_AXIS));
 		sidebar.add(terminal);
 		sidebar.add(audioslider);
+        sidebar.add(swap);
+        sidebar.add(playlistButton);
 		sidebar.add(grid);
 
-
-		//sidebar components 
+        // bottom bar components like information and stuff
 		
-				
-		
-		// bottom bar components like information and stuff
-		
-		mainpanel.add(videopanel , BorderLayout.CENTER);
 		mainpanel.add(sidebar , BorderLayout.EAST);
-		
-		
+        mainpanel.add(utilitybar , BorderLayout.SOUTH);
 		
 
-		//mainframe settings
+    }
+
+	public static void main(String[] args) {
+		// Value initialization for the dimensions of the TCP! and its components
+		Dimension side = new Dimension ( 300 , 400);
+		Dimension tcp = new Dimension ( 800 , 400);
+		Dimension bottom = new Dimension ( 300 , 400);
+	
+		SwingUtilities.invokeLater(() -> {
+			
+		// The Whole Frame of the TCP
+		JFrame mainframe = new JFrame("TCP!");
+        TCPlayer player = new TCPlayer();
+        try {
+            player.setVideoBackend(new WebPlayer());
+        } catch (java.io.IOException e) {
+            throw new RuntimeException("Could not start the local WebPlayer server", e);
+        }
+
+        //mainframe settings
 		mainframe.setLayout(new BorderLayout());
-		mainframe.add(mainpanel , BorderLayout.CENTER);
-		mainframe.add(utilitybar , BorderLayout.SOUTH);
-		
-		
-		
-		
+		mainframe.setContentPane(player);
+
+		mainframe.setSize(tcp);
+		mainframe.setBackground(Color.CYAN);	
 		mainframe.setVisible(true);
 		mainframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
 		mainframe.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent event) {
+                player.setVideoBackend(null);
+            }
 		});
-		
-
-		
-		Platform.runLater(() -> {
-   	
-    		webplayer.loadURL(pageServer.getURL());
-			
-		});
-
-
-		new javax.swing.Timer(250, e -> {
-    		webplayer.getDuration(duration -> {
-        		webplayer.getCurrentTime(currentTime -> {
-            		if (duration > 0 && !videoslider.getValueIsAdjusting()) {
-                		int percentage = (int) ((currentTime / duration) * 100);
-
-              			SwingUtilities.invokeLater(() ->
-                    	videoslider.setValue(percentage)
-                		);
-           			}
-        		});
-   		 	});
-		}).start();
 
 
 

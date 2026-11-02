@@ -18,7 +18,7 @@ public class LocalServer implements AutoCloseable {
                 public void handle(HttpExchange exchange) throws IOException{
                     byte[] page;
                    
-                    try (InputStream resource = LocalServer.class.getResourceAsStream("/assets//embed.html")) {
+                    try (InputStream resource = LocalServer.class.getResourceAsStream("/web/embed.html")) {
                     if (resource == null) {
                         exchange.sendResponseHeaders(404, -1);
                         exchange.close();
@@ -45,9 +45,7 @@ public class LocalServer implements AutoCloseable {
 
 
     @Override
-    public void close() throws Exception {
-        
-        System.out.println("Closing server...");
+    public void close() {
         server.stop(0);
     }
     
