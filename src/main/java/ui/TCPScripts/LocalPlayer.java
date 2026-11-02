@@ -1,6 +1,7 @@
 package ui.TCPScripts;
 
 import java.net.JarURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,13 +16,18 @@ import java.util.function.Consumer;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.DefaultListModel;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JList;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
@@ -34,21 +40,19 @@ import javafx.util.Duration;
 
 public class LocalPlayer extends JFXPanel implements TCPlayer.VideoBackend {
     private static final String MEDIA_FOLDER = "/assets/media/";
-    private static final String DEFAULT_MEDIA = MEDIA_FOLDER
-            + "flow-together-venat-instance-with-official-lyrics-final-fantasy-xiv-.mp4";
 
     private final List<String> playlist;
-    private int currentIndex;
+    private volatile int currentIndex;
     private MediaPlayer mediaPlayer;
 
     public LocalPlayer() {
-        this(DEFAULT_MEDIA);
+        this(null);
     }
 
     /** Pass a classpath resource, for example /assets/media/video.mp4. */
     public LocalPlayer(String resourcePath) {
         playlist = discoverPlaylist(resourcePath);
-        currentIndex = playlist.indexOf(resourcePath);
+        currentIndex = resourcePath == null ? 0 : playlist.indexOf(resourcePath);
         if (currentIndex < 0) currentIndex = 0;
         Platform.runLater(() -> loadTrack(currentIndex, false));
     }
@@ -65,9 +69,8 @@ public class LocalPlayer extends JFXPanel implements TCPlayer.VideoBackend {
                             .forEach(resources::add);
                 }
             } else {
-                URL sample = LocalPlayer.class.getResource(DEFAULT_MEDIA);
-                if (sample != null && "jar".equals(sample.getProtocol())) {
-                    JarURLConnection connection = (JarURLConnection) sample.openConnection();
+                if (directory != null && "jar".equals(directory.getProtocol())) {
+                    JarURLConnection connection = (JarURLConnection) directory.openConnection();
                     JarFile jar = connection.getJarFile();
                     Enumeration<JarEntry> entries = jar.entries();
                     while (entries.hasMoreElements()) {
@@ -85,8 +88,9 @@ public class LocalPlayer extends JFXPanel implements TCPlayer.VideoBackend {
             System.err.println("Could not list " + MEDIA_FOLDER + ": " + e.getMessage());
         }
 
-        if (resources.isEmpty()) resources.add(DEFAULT_MEDIA);
-        if (!resources.contains(selectedResource)) resources.add(selectedResource);
+        if (selectedResource != null && !resources.contains(selectedResource)) {
+            resources.add(selectedResource);
+        }
 
         List<String> ordered = new ArrayList<>(resources);
         ordered.sort(Comparator.comparing(String::toLowerCase));
@@ -101,6 +105,7 @@ public class LocalPlayer extends JFXPanel implements TCPlayer.VideoBackend {
     }
 
     private void loadTrack(int index, boolean autoplay) {
+        if (playlist.isEmpty()) return;
         if (mediaPlayer != null) {
             mediaPlayer.dispose();
             mediaPlayer = null;
@@ -108,7 +113,18 @@ public class LocalPlayer extends JFXPanel implements TCPlayer.VideoBackend {
 
         currentIndex = Math.floorMod(index, playlist.size());
         String resourcePath = playlist.get(currentIndex);
-        URL mediaUrl = LocalPlayer.class.getResource(resourcePath);
+        URL mediaUrl;
+        try {
+            if (resourcePath.startsWith("http://") || resourcePath.startsWith("https://")
+                    || resourcePath.startsWith("file:")) {
+                mediaUrl = URI.create(resourcePath).toURL();
+            } else {
+                mediaUrl = LocalPlayer.class.getResource(resourcePath);
+            }
+        } catch (Exception e) {
+            System.err.println("Invalid media location: " + resourcePath);
+            return;
+        }
         if (mediaUrl == null) {
             System.err.println("Media resource not found: " + resourcePath);
             return;
@@ -190,12 +206,16 @@ public class LocalPlayer extends JFXPanel implements TCPlayer.VideoBackend {
 
     @Override
     public void nextTrack() {
-        Platform.runLater(() -> loadTrack(currentIndex + 1, true));
+        Platform.runLater(() -> {
+            if (!playlist.isEmpty()) loadTrack(currentIndex + 1, true);
+        });
     }
 
     @Override
     public void previousTrack() {
-        Platform.runLater(() -> loadTrack(currentIndex - 1, true));
+        Platform.runLater(() -> {
+            if (!playlist.isEmpty()) loadTrack(currentIndex - 1, true);
+        });
     }
 
     @Override
@@ -211,26 +231,101 @@ public class LocalPlayer extends JFXPanel implements TCPlayer.VideoBackend {
     @Override 
     public void viewplaylist() {
         SwingUtilities.invokeLater(() -> {
-            DefaultListModel<String> titles = new DefaultListModel<>();
-            for (String resource : playlist) titles.addElement(titleFor(resource));
-
-            JList<String> videoList = new JList<>(titles);
-            videoList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-            videoList.setSelectedIndex(currentIndex);
-            videoList.addListSelectionListener(event -> {
-                if (!event.getValueIsAdjusting() && videoList.getSelectedIndex() >= 0) {
-                    int selectedIndex = videoList.getSelectedIndex();
-                    Platform.runLater(() -> loadTrack(selectedIndex, true));
-                }
-            });
-
             JFrame playlistFrame = new JFrame("Videos");
             playlistFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-            playlistFrame.add(new JScrollPane(videoList));
+            JPanel rows = new JPanel();
+            rows.setLayout(new BoxLayout(rows, BoxLayout.Y_AXIS));
+            JPanel content = new JPanel(new java.awt.BorderLayout());
+            content.add(new JScrollPane(rows), java.awt.BorderLayout.CENTER);
+            JButton addButton = new JButton("Add video or URL");
+            addButton.addActionListener(event -> addPlaylistEntry(playlistFrame, rows));
+            content.add(addButton, java.awt.BorderLayout.SOUTH);
+            playlistFrame.setContentPane(content);
+            rebuildPlaylistRows(rows, playlistFrame);
             playlistFrame.setSize(360, 420);
             playlistFrame.setLocationRelativeTo(this);
             playlistFrame.setVisible(true);
         });
+    }
+
+    private void rebuildPlaylistRows(JPanel rows, JFrame frame) {
+        rows.removeAll();
+        for (int i = 0; i < playlist.size(); i++) {
+            final int index = i;
+            String source = playlist.get(i);
+            JPanel row = new JPanel(new java.awt.BorderLayout(8, 4));
+            row.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));
+            JPanel labels = new JPanel();
+            labels.setLayout(new BoxLayout(labels, BoxLayout.Y_AXIS));
+            labels.add(new JLabel(titleFor(source)));
+            labels.add(new JLabel(source));
+
+            JButton playButton = new JButton("Play");
+            playButton.addActionListener(event -> Platform.runLater(() -> loadTrack(index, true)));
+            JButton urlButton = new JButton("Reference");
+            urlButton.addActionListener(event -> JOptionPane.showMessageDialog(frame,
+                    source, "Video reference", JOptionPane.INFORMATION_MESSAGE));
+            JButton deleteButton = new JButton("Delete");
+            deleteButton.addActionListener(event -> {
+                int answer = JOptionPane.showConfirmDialog(frame,
+                        "Delete this video from the playlist?\n" + source,
+                        "Delete video", JOptionPane.YES_NO_OPTION);
+                if (answer != JOptionPane.YES_OPTION) return;
+                int playingIndex = currentIndex;
+                playlist.remove(index);
+                if (playlist.isEmpty()) {
+                    currentIndex = 0;
+                    Platform.runLater(() -> {
+                        if (mediaPlayer != null) mediaPlayer.dispose();
+                        mediaPlayer = null;
+                        setScene(new Scene(new StackPane()));
+                    });
+                } else {
+                    if (index < playingIndex) currentIndex = playingIndex - 1;
+                    else if (index == playingIndex) currentIndex = Math.min(index, playlist.size() - 1);
+                    final int nextIndex = currentIndex;
+                    if (index == playingIndex) Platform.runLater(() -> loadTrack(nextIndex, true));
+                }
+                rebuildPlaylistRows(rows, frame);
+            });
+            JPanel buttons = new JPanel();
+            buttons.add(playButton);
+            buttons.add(urlButton);
+            buttons.add(deleteButton);
+            row.add(labels, java.awt.BorderLayout.CENTER);
+            row.add(buttons, java.awt.BorderLayout.EAST);
+            rows.add(row);
+        }
+        rows.revalidate();
+        rows.repaint();
+        frame.revalidate();
+    }
+
+    private void addPlaylistEntry(JFrame frame, JPanel rows) {
+        Object[] choices = {"Video file", "URL", "Cancel"};
+        int choice = JOptionPane.showOptionDialog(frame, "Choose a video source to add:",
+                "Add video", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
+                null, choices, choices[0]);
+        String source = null;
+        if (choice == 0) {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setFileFilter(new FileNameExtensionFilter(
+                    "Video and audio files", "mp4", "m4v", "mov", "mp3", "m4a", "wav"));
+            if (chooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+                source = chooser.getSelectedFile().toURI().toString();
+            }
+        } else if (choice == 1) {
+            source = JOptionPane.showInputDialog(frame, "Enter a media URL:");
+            if (source != null) source = source.trim();
+            if (source != null && !(source.startsWith("http://") || source.startsWith("https://"))) {
+                JOptionPane.showMessageDialog(frame, "Enter a valid http or https media URL.",
+                        "Invalid URL", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+        }
+        if (source == null || source.isBlank() || playlist.contains(source)) return;
+        playlist.add(source);
+        rebuildPlaylistRows(rows, frame);
     }
 
     private static String titleFor(String resource) {

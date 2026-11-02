@@ -38,14 +38,17 @@ public class TCPlayer extends JPanel{
 }
 
     // C1 
-    private VideoBackend videoBackend;
+    private volatile VideoBackend videoBackend;
     private final JPanel mainpanel = new JPanel(new BorderLayout());
     private final JPanel videoPanel = new JPanel(new BorderLayout());
+    private final TCPSlider videoslider = new TCPSlider();
+    private final Timer timelineTimer;
 
 
     // TCPlayer constructor
     public TCPlayer() {
         setLayout(new BorderLayout());
+        videoslider.setMaximum(1000);
         add(mainpanel, BorderLayout.CENTER);
 
         // C1 - 1 Video Panel
@@ -66,15 +69,23 @@ public class TCPlayer extends JPanel{
         });
 			
 		
-		TCPSlider videoslider = new TCPSlider();
-			videoslider.addChangeListener(e -> {
-				if (!videoslider.getValueIsAdjusting() && videoBackend != null) {
-                    double percentage = videoslider.getValue() / 100.0;
-                    videoBackend.getDuration(duration -> {
-                        if (duration > 0) videoBackend.seekTo(duration * percentage);
-                    });
+		boolean[] userSeeking = {false};
+		videoslider.addChangeListener(e -> {
+			if (videoslider.getValueIsAdjusting()) {
+				userSeeking[0] = true;
+			} else if (userSeeking[0]) {
+				userSeeking[0] = false;
+				VideoBackend backend = videoBackend;
+				if (backend != null) {
+					double percentage = videoslider.getValue() / 1000.0;
+					backend.getDuration(duration -> {
+						if (duration > 0 && backend == videoBackend) backend.seekTo(duration * percentage);
+					});
 				}
-			});
+			}
+		});
+		timelineTimer = new Timer(250, e -> updateTimeline());
+		timelineTimer.start();
 		
 		
 		TCPButton next = new TCPButton("Next");
@@ -169,6 +180,22 @@ public class TCPlayer extends JPanel{
 		
 
     }
+
+	private void updateTimeline() {
+		VideoBackend backend = videoBackend;
+		if (backend == null || videoslider.getValueIsAdjusting()) return;
+
+		backend.getDuration(duration -> {
+			if (duration <= 0 || !Double.isFinite(duration) || backend != videoBackend) return;
+			backend.getCurrentTime(currentTime -> SwingUtilities.invokeLater(() -> {
+				if (backend != videoBackend || videoslider.getValueIsAdjusting()
+						|| !Double.isFinite(currentTime)) return;
+				int position = (int) Math.round(
+						Math.max(0.0, Math.min(1.0, currentTime / duration)) * 1000.0);
+				videoslider.setValue(position);
+			}));
+		});
+	}
 
 	public static void main(String[] args) {
 		// Value initialization for the dimensions of the TCP! and its components
