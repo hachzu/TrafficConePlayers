@@ -141,22 +141,6 @@ public class TCPlayer extends JPanel{
 		grid.setPreferredSize(new Dimension( 100 , 50));
 		grid.setBackground(Color.PINK);
 		
-        JButton swap = new JButton("Swap");
-		swap.addActionListener(e -> {
-            if (videoBackend instanceof WebPlayer) {
-                setVideoBackend(new LocalPlayer());
-            } else {
-                try {
-                    setVideoBackend(new WebPlayer());
-                }catch (java.io.IOException ex) {
-                    JOptionPane.showMessageDialog(this,
-                            "Could not start the web player: " + ex.getMessage(),
-                            "Player switch failed",
-                            JOptionPane.ERROR_MESSAGE);
-                }
-            }
-        });
-
         JButton playlistButton = new JButton("Videos");
         playlistButton.addActionListener(e -> {
             if (videoBackend != null) videoBackend.viewplaylist();
@@ -169,7 +153,6 @@ public class TCPlayer extends JPanel{
 		sidebar.setLayout(new BoxLayout(sidebar , BoxLayout.Y_AXIS));
 		sidebar.add(terminal);
 		sidebar.add(audioslider);
-        sidebar.add(swap);
         sidebar.add(playlistButton);
 		sidebar.add(grid);
 
@@ -208,11 +191,7 @@ public class TCPlayer extends JPanel{
 		// The Whole Frame of the TCP
 		JFrame mainframe = new JFrame("TCP!");
         TCPlayer player = new TCPlayer();
-        try {
-            player.setVideoBackend(new WebPlayer());
-        } catch (java.io.IOException e) {
-            throw new RuntimeException("Could not start the local WebPlayer server", e);
-        }
+        player.setVideoBackend(new LocalPlayer());
 
         //mainframe settings
 		mainframe.setLayout(new BorderLayout());
