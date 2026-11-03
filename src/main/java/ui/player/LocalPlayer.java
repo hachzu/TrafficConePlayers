@@ -48,8 +48,10 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
     private final JFXPanel videoSurface = new JFXPanel();
     private final VinylVideoPanel vinylPanel = new VinylVideoPanel();
     private volatile int currentIndex;
+    private volatile int playlistSize;
     private volatile boolean audioOnly;
     private volatile boolean videoMode;
+    private volatile String currentTrackTitle = "";
     private MediaPlayer mediaPlayer;
     private volatile Consumer<Boolean> audioTrackListener = audioOnly -> { };
     private JFrame playlistFrame;
@@ -68,6 +70,7 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
         vinylPanel.setPlaying(true);
 
         playlist = discoverPlaylist(resourcePath);
+        playlistSize = playlist.size();
         currentIndex = resourcePath == null ? 0 : playlist.indexOf(resourcePath);
         if (currentIndex < 0) currentIndex = 0;
         Platform.runLater(() -> loadTrack(currentIndex, false));
@@ -143,6 +146,8 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
 
         currentIndex = Math.floorMod(index, playlist.size());
         String resourcePath = playlist.get(currentIndex);
+        currentTrackTitle = titleFor(resourcePath);
+        playlistSize = playlist.size();
         audioOnly = isAudioResource(resourcePath);
         if (audioOnly) setVideoMode(false);
         audioTrackListener.accept(audioOnly);
@@ -249,6 +254,26 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
         });
     }
 
+    public void getTrackDetails(Consumer<TrackDetails> callback) {
+        Platform.runLater(() -> {
+            double duration = mediaPlayer == null
+                    ? 0.0
+                    : mediaPlayer.getTotalDuration().toSeconds();
+            double currentTime = mediaPlayer == null
+                    ? 0.0
+                    : mediaPlayer.getCurrentTime().toSeconds();
+            if (!Double.isFinite(duration) || duration < 0) duration = 0.0;
+            if (!Double.isFinite(currentTime) || currentTime < 0) currentTime = 0.0;
+            int trackNumber = playlistSize == 0 ? 0 : currentIndex + 1;
+            callback.accept(new TrackDetails(currentTrackTitle, trackNumber,
+                    playlistSize, currentTime, duration));
+        });
+    }
+
+    public record TrackDetails(String title, int trackNumber, int trackCount,
+            double currentTime, double duration) {
+    }
+
     @Override
     public void nextTrack() {
         Platform.runLater(() -> {
@@ -330,8 +355,10 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
                 if (answer != JOptionPane.YES_OPTION) return;
                 int playingIndex = currentIndex;
                 playlist.remove(index);
+                playlistSize = playlist.size();
                 if (playlist.isEmpty()) {
                     currentIndex = 0;
+                    currentTrackTitle = "";
                     Platform.runLater(() -> {
                         if (mediaPlayer != null) mediaPlayer.dispose();
                         mediaPlayer = null;
@@ -340,6 +367,7 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
                 } else {
                     if (index < playingIndex) currentIndex = playingIndex - 1;
                     else if (index == playingIndex) currentIndex = Math.min(index, playlist.size() - 1);
+                    currentTrackTitle = titleFor(playlist.get(currentIndex));
                     final int nextIndex = currentIndex;
                     if (index == playingIndex) Platform.runLater(() -> loadTrack(nextIndex, true));
                 }
@@ -382,13 +410,20 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
         }
         if (source == null || source.isBlank() || playlist.contains(source)) return;
         playlist.add(source);
+        playlistSize = playlist.size();
         if (rows != null && frame != null && frame.isDisplayable()) {
             rebuildPlaylistRows(rows, frame);
         }
     }
 
     private static String titleFor(String resource) {
-        String filename = resource.substring(resource.lastIndexOf('/') + 1);
+        String path = resource;
+        try {
+            String uriPath = URI.create(resource).getPath();
+            if (uriPath != null && !uriPath.isBlank()) path = uriPath;
+        } catch (IllegalArgumentException ignored) {
+        }
+        String filename = path.substring(path.lastIndexOf('/') + 1);
         int extension = filename.lastIndexOf('.');
         if (extension > 0) filename = filename.substring(0, extension);
         return filename.replaceAll("[-_]+", " ").trim();

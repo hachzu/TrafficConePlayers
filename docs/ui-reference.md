@@ -13,7 +13,7 @@ The canvas is **920 × 360 px**. Coordinates start at the canvas's top-left corn
 | Area | Bounds | Contents |
 | --- | --- | --- |
 | Video | `(10, 10, 370, 230)` | Local video or looping vinyl animation |
-| Name display | `(390, 10, 520, 60)` | Track title and queue/time placeholders |
+| Name display | `(390, 10, 520, 60)` | Current track title, playlist number, elapsed time, and duration |
 | Utilities | `(390, 80, 520, 160)` | Volume slider, user placeholder, video toggle, settings cog |
 | Timeline | `(0, 260, 920, 40)` | Seek slider |
 | Controls | `(0, 310, 920, 50)` | Playback and utility buttons |

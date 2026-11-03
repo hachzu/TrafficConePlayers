@@ -36,6 +36,8 @@ public class TCPUI extends JFrame {
     final JToggleButton videoToggle;
     final JSlider volumeSlider;
     final JSlider timelineSlider;
+    final JLabel trackTitle;
+    final JLabel trackInfo;
     final JPanel titleBar;
     final JLabel titleLabel;
 
@@ -73,13 +75,13 @@ public class TCPUI extends JFrame {
         nameDisplayPanel.setBounds(390, 10, 520, 60);
         nameDisplayPanel.setBorder(BorderFactory.createLineBorder(panelBorder, 2));
 
-        JLabel trackTitle = new JLabel("TRACK TITLE");
+        trackTitle = new JLabel("TRACK TITLE");
         trackTitle.setFont(pixelFont.deriveFont(18f));
         trackTitle.setForeground(new Color(255, 180, 40));
         trackTitle.setHorizontalAlignment(SwingConstants.LEFT);
         trackTitle.setBorder(BorderFactory.createEmptyBorder(3, 12, 0, 12));
 
-        JLabel trackInfo = new JLabel("01 / 05   |   00:00");
+        trackInfo = new JLabel("01 / 05   |   00:00 / 00:00");
         trackInfo.setFont(pixelFont.deriveFont(13f));
         trackInfo.setForeground(new Color(255, 180, 40));
         trackInfo.setHorizontalAlignment(SwingConstants.LEFT);

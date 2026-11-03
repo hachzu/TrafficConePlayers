@@ -6,6 +6,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
+import java.util.Locale;
 
 import javax.swing.AbstractButton;
 import javax.swing.JFrame;
@@ -124,18 +125,33 @@ class TCPController {
     }
 
     private void updateTimeline(boolean[] updatingTimeline) {
-        localPlayer.getDuration(duration -> {
-            if (duration <= 0 || !Double.isFinite(duration)) return;
-            localPlayer.getCurrentTime(current -> SwingUtilities.invokeLater(() -> {
-                if (playerWindow.timelineSlider.getValueIsAdjusting()
-                        || !Double.isFinite(current)) return;
-                updatingTimeline[0] = true;
-                playerWindow.timelineSlider.setValue((int) Math.round(
-                        Math.max(0.0, Math.min(1.0, current / duration))
-                                * playerWindow.timelineSlider.getMaximum()));
-                updatingTimeline[0] = false;
-            }));
-        });
+        localPlayer.getTrackDetails(details -> SwingUtilities.invokeLater(() -> {
+            playerWindow.trackTitle.setText(details.title().isBlank()
+                    ? "NO TRACK" : details.title().toUpperCase(Locale.ROOT));
+            playerWindow.trackInfo.setText(String.format(Locale.ROOT, "%02d / %02d   |   %s / %s",
+                    details.trackNumber(), details.trackCount(),
+                    formatTime(details.currentTime()), formatTime(details.duration())));
+
+            if (details.duration() <= 0 || playerWindow.timelineSlider.getValueIsAdjusting()) {
+                return;
+            }
+            updatingTimeline[0] = true;
+            playerWindow.timelineSlider.setValue((int) Math.round(
+                    Math.max(0.0, Math.min(1.0, details.currentTime() / details.duration()))
+                            * playerWindow.timelineSlider.getMaximum()));
+            updatingTimeline[0] = false;
+        }));
+    }
+
+    private String formatTime(double seconds) {
+        long totalSeconds = (long) seconds;
+        long minutes = totalSeconds / 60;
+        long remainingSeconds = totalSeconds % 60;
+        if (minutes >= 60) {
+            return String.format(Locale.ROOT, "%d:%02d:%02d",
+                    minutes / 60, minutes % 60, remainingSeconds);
+        }
+        return String.format(Locale.ROOT, "%02d:%02d", minutes, remainingSeconds);
     }
 
     private void addOrangeClickFeedback(AbstractButton... buttons) {
