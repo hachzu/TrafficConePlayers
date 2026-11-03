@@ -1,4 +1,4 @@
-package ui;
+package ui.player;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -65,6 +65,16 @@ public class VinylVideoPanel extends JPanel {
         Platform.runLater(() -> {
             if (vinylView != null) {
                 vinylView.setVisible(visible);
+            }
+        });
+    }
+
+    public void close() {
+        Platform.runLater(() -> {
+            if (player != null) {
+                player.dispose();
+                player = null;
+                vinylView = null;
             }
         });
     }
