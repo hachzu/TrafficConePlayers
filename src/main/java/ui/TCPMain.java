@@ -2,10 +2,10 @@ package ui;
 
 import javax.swing.SwingUtilities;
 
-public class Main {
+public class TCPMain {
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            LandingPage window = new LandingPage();
+            TCPLandingPage window = new TCPLandingPage();
             new TCPController(window);
             window.setVisible(true);
         });

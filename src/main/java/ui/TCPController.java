@@ -16,22 +16,25 @@ import javax.swing.JToggleButton;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.plaf.basic.BasicToggleButtonUI;
 
-import ui.player.LocalPlayer;
+import ui.player.TCPLocalPlayer;
 
 class TCPController {
-    private final LandingPage landingPage;
-    private LocalPlayer localPlayer;
-    private TCPUI playerWindow;
+    private final TCPLandingPage landingPage;
+    private TCPLocalPlayer localPlayer;
+    private TCPDefaultUI playerWindow;
     private Timer timelineTimer;
 
-    TCPController(LandingPage landingPage) {
+    TCPController(TCPLandingPage landingPage) {
         this.landingPage = landingPage;
         landingPage.continueButton.addActionListener(event -> openPlayer());
     }
 
     private void openPlayer() {
-        localPlayer = new LocalPlayer();
-        playerWindow = new TCPUI(localPlayer.getView());
+        localPlayer = new TCPLocalPlayer();
+        playerWindow = new TCPDefaultUI.Builder()
+                .playerDisplay(localPlayer.getView())
+                .theme(TCPPlayerTheme.orange())
+                .build();
         connectControls();
         playerWindow.setVisible(true);
         landingPage.dispose();
@@ -75,6 +78,9 @@ class TCPController {
         playerWindow.importButton.addActionListener(event -> localPlayer.importMedia());
         playerWindow.videoToggle.addActionListener(event ->
                 localPlayer.setVideoMode(playerWindow.videoToggle.isSelected()));
+        playerWindow.userButton.addActionListener(event ->
+                playerWindow.userMenu.show(playerWindow.userButton, 0,
+                        playerWindow.userButton.getHeight()));
 
         localPlayer.setAudioTrackListener(audioOnly -> SwingUtilities.invokeLater(() -> {
             playerWindow.videoToggle.setEnabled(!audioOnly);
@@ -155,7 +161,7 @@ class TCPController {
     }
 
     private void addOrangeClickFeedback(AbstractButton... buttons) {
-        Color clickColor = new Color(255, 102, 0);
+        var clickColor = playerWindow.theme.clickColor;
 
         for (AbstractButton button : buttons) {
             Color normalColor = button.getBackground();

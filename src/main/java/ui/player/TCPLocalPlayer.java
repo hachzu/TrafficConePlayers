@@ -39,14 +39,14 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
-public class LocalPlayer extends JPanel implements PlayerBackend {
+public class TCPLocalPlayer extends JPanel implements TCPComponents {
     private static final String MEDIA_FOLDER = "/assets/media/";
     private static final String VIDEO_CARD = "video";
     private static final String VINYL_CARD = "vinyl";
 
     private final List<String> playlist;
     private final JFXPanel videoSurface = new JFXPanel();
-    private final VinylVideoPanel vinylPanel = new VinylVideoPanel();
+    private final TCPVinyl vinylPanel = new TCPVinyl();
     private volatile int currentIndex;
     private volatile int playlistSize;
     private volatile boolean audioOnly;
@@ -57,12 +57,12 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
     private JFrame playlistFrame;
     private JPanel playlistRows;
 
-    public LocalPlayer() {
+    public TCPLocalPlayer() {
         this(null);
     }
 
     /** Pass a classpath resource, for example /assets/media/video.mp4. */
-    public LocalPlayer(String resourcePath) {
+    public TCPLocalPlayer(String resourcePath) {
         super(new CardLayout());
         add(videoSurface, VIDEO_CARD);
         add(vinylPanel, VINYL_CARD);
@@ -79,12 +79,12 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
     private static List<String> discoverPlaylist(String selectedResource) {
         Set<String> resources = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         try {
-            URL directory = LocalPlayer.class.getResource(MEDIA_FOLDER);
+            URL directory = TCPLocalPlayer.class.getResource(MEDIA_FOLDER);
             if (directory != null && "file".equals(directory.getProtocol())) {
                 try (var paths = Files.list(Path.of(directory.toURI()))) {
                     paths.filter(Files::isRegularFile)
                             .map(path -> MEDIA_FOLDER + path.getFileName())
-                            .filter(LocalPlayer::isVideoResource)
+                            .filter(TCPLocalPlayer::isVideoResource)
                             .forEach(resources::add);
                 }
             } else {
@@ -157,7 +157,7 @@ public class LocalPlayer extends JPanel implements PlayerBackend {
                     || resourcePath.startsWith("file:")) {
                 mediaUrl = URI.create(resourcePath).toURL();
             } else {
-                mediaUrl = LocalPlayer.class.getResource(resourcePath);
+                mediaUrl = TCPLocalPlayer.class.getResource(resourcePath);
             }
         } catch (Exception e) {
             System.err.println("Invalid media location: " + resourcePath);

@@ -13,11 +13,11 @@ import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
 import javafx.scene.media.MediaView;
 
-public class VinylVideoPanel extends JPanel {
+public class TCPVinyl extends JPanel {
     private MediaPlayer player;
     private MediaView vinylView;
 
-    public VinylVideoPanel() {
+    public TCPVinyl() {
         super(new BorderLayout());
         setBackground(Color.BLACK);
 

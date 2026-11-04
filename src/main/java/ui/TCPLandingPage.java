@@ -10,10 +10,10 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-class LandingPage extends JFrame {
+class TCPLandingPage extends JFrame {
     final JButton continueButton;
 
-    LandingPage() {
+    TCPLandingPage() {
         setTitle("Traffic Cone Player");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);

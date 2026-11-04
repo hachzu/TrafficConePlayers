@@ -7,13 +7,13 @@ import java.awt.Graphics;
 import javax.swing.JSlider;
 import javax.swing.plaf.basic.BasicSliderUI;
 
-class ThemedSliderUI extends BasicSliderUI {
+class TCPDefaultSliderUI extends BasicSliderUI {
     private final int thumbSize;
     private final int trackHeight;
     private final int fillHeight;
     private final boolean showEnds;
 
-    ThemedSliderUI(JSlider slider, int thumbSize, int trackHeight,
+    TCPDefaultSliderUI(JSlider slider, int thumbSize, int trackHeight,
             int fillHeight, boolean showEnds) {
         super(slider);
         this.thumbSize = thumbSize;

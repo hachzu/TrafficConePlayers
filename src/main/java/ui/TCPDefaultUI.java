@@ -14,13 +14,16 @@ import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JSlider;
 import javax.swing.JToggleButton;
 import javax.swing.SwingConstants;
 
-public class TCPUI extends JFrame {
+public class TCPDefaultUI extends JFrame {
     final JButton userButton;
+    final JPopupMenu userMenu;
     final JButton settingsButton;
     final JButton previousButton;
     final JToggleButton playPauseButton;
@@ -40,22 +43,52 @@ public class TCPUI extends JFrame {
     final JLabel trackInfo;
     final JPanel titleBar;
     final JLabel titleLabel;
+    final TCPPlayerTheme theme;
 
-    TCPUI(JComponent playerDisplay) {
+    static class Builder {
+        private JComponent playerDisplay;
+        private String title = "Traffic Cone Player";
+        private TCPPlayerTheme theme = TCPPlayerTheme.orange();
+
+        Builder playerDisplay(JComponent playerDisplay) {
+            this.playerDisplay = playerDisplay;
+            return this;
+        }
+
+        Builder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        Builder theme(TCPPlayerTheme theme) {
+            this.theme = theme.copy();
+            return this;
+        }
+
+        TCPDefaultUI build() {
+            if (playerDisplay == null) {
+                throw new IllegalStateException("A player display is required");
+            }
+            return new TCPDefaultUI(playerDisplay, title, theme.copy());
+        }
+    }
+
+    private TCPDefaultUI(JComponent playerDisplay, String title, TCPPlayerTheme theme) {
+        this.theme = theme;
         setUndecorated(true);
         setResizable(false);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setTitle("Traffic Cone Player");
+        setTitle(title);
 
         ImageIcon image = new ImageIcon("src/main/resources/assets/cone.png");
         setIconImage(image.getImage());
 
-        Color orange = new Color(255, 165, 0);
-        Color panelBorder = new Color(105, 38, 0);
-        Color buttonBackground = new Color(255, 224, 178);
+        Color orange = theme.accent;
+        Color panelBorder = theme.panelBorder;
+        Color buttonBackground = theme.buttonBackground;
         Color buttonBorder = panelBorder;
 
-        JPanel canvas = new CanvasBackgroundPanel("/assets/mainui_bg.png");
+        JPanel canvas = new TCPBGCanvas("/assets/mainui_bg.png");
         canvas.setBackground(orange);
         canvas.setPreferredSize(new Dimension(920, 360));
 
@@ -71,26 +104,26 @@ public class TCPUI extends JFrame {
         }
 
         JPanel nameDisplayPanel = new JPanel(new GridLayout(2, 1));
-        nameDisplayPanel.setBackground(new Color(35, 23, 16));
+        nameDisplayPanel.setBackground(theme.panelBackground);
         nameDisplayPanel.setBounds(390, 10, 520, 60);
         nameDisplayPanel.setBorder(BorderFactory.createLineBorder(panelBorder, 2));
 
         trackTitle = new JLabel("TRACK TITLE");
         trackTitle.setFont(pixelFont.deriveFont(18f));
-        trackTitle.setForeground(new Color(255, 180, 40));
+        trackTitle.setForeground(theme.trackText);
         trackTitle.setHorizontalAlignment(SwingConstants.LEFT);
         trackTitle.setBorder(BorderFactory.createEmptyBorder(3, 12, 0, 12));
 
         trackInfo = new JLabel("01 / 05   |   00:00 / 00:00");
         trackInfo.setFont(pixelFont.deriveFont(13f));
-        trackInfo.setForeground(new Color(255, 180, 40));
+        trackInfo.setForeground(theme.trackText);
         trackInfo.setHorizontalAlignment(SwingConstants.LEFT);
         trackInfo.setBorder(BorderFactory.createEmptyBorder(3, 12, 0, 12));
         nameDisplayPanel.add(trackTitle);
         nameDisplayPanel.add(trackInfo);
 
         JPanel utilityPanel = new JPanel(new BorderLayout(0, 8));
-        utilityPanel.setBackground(new Color(35, 23, 16));
+        utilityPanel.setBackground(theme.panelBackground);
         utilityPanel.setBounds(390, 80, 520, 160);
         utilityPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(panelBorder, 2),
@@ -105,7 +138,7 @@ public class TCPUI extends JFrame {
         volumeSlider.setOpaque(false);
         volumeSlider.setFocusable(false);
         volumeSlider.setToolTipText("Volume");
-        volumeSlider.setUI(new ThemedSliderUI(volumeSlider, 25, 10, 6, true));
+        volumeSlider.setUI(new TCPDefaultSliderUI(volumeSlider, 25, 10, 6, true));
 
         userButton = new JButton("USER  v");
         userButton.setPreferredSize(new Dimension(122, 38));
@@ -115,7 +148,17 @@ public class TCPUI extends JFrame {
         userButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         userButton.setFocusPainted(false);
         userButton.setFocusable(false);
-        userButton.setToolTipText("User menu (empty placeholder)");
+        userButton.setToolTipText("Open user menu");
+
+        userMenu = new JPopupMenu();
+        userMenu.setBackground(buttonBackground);
+        userMenu.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
+        JMenuItem noUsersItem = new JMenuItem("No users available");
+        noUsersItem.setBackground(buttonBackground);
+        noUsersItem.setForeground(buttonBorder);
+        noUsersItem.setFont(pixelFont.deriveFont(12f));
+        noUsersItem.setEnabled(false);
+        userMenu.add(noUsersItem);
 
         utilityTop.add(volumeIcon, BorderLayout.WEST);
         utilityTop.add(volumeSlider, BorderLayout.CENTER);
@@ -165,7 +208,7 @@ public class TCPUI extends JFrame {
         utilityPanel.add(utilityBottom, BorderLayout.CENTER);
 
         JPanel timelinePanel = new JPanel(new BorderLayout());
-        timelinePanel.setBackground(new Color(82, 170, 0));
+        timelinePanel.setBackground(theme.timelineBackground);
         timelinePanel.setBounds(0, 260, 920, 40);
         timelinePanel.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
         timelinePanel.setOpaque(false);
@@ -173,11 +216,11 @@ public class TCPUI extends JFrame {
         timelineSlider = new JSlider(0, 1000, 0);
         timelineSlider.setOpaque(false);
         timelineSlider.setToolTipText("Seek position");
-        timelineSlider.setUI(new ThemedSliderUI(timelineSlider, 25, 10, 6, true));
+        timelineSlider.setUI(new TCPDefaultSliderUI(timelineSlider, 25, 10, 6, true));
         timelinePanel.add(timelineSlider, BorderLayout.CENTER);
 
         JPanel controlPanel = new JPanel(new BorderLayout());
-        controlPanel.setBackground(new Color(255, 128, 0));
+        controlPanel.setBackground(theme.controlBackground);
         controlPanel.setBounds(0, 310, 920, 50);
 
         JPanel playbackButtons = new JPanel(new GridLayout(1, 6, 8, 0));
@@ -280,7 +323,7 @@ public class TCPUI extends JFrame {
 
         JPanel currencyDisplay = new JPanel(new BorderLayout());
         currencyDisplay.setPreferredSize(new Dimension(112, 40));
-        currencyDisplay.setBackground(new Color(255, 224, 178));
+        currencyDisplay.setBackground(theme.buttonBackground);
         currencyDisplay.setBorder(BorderFactory.createLineBorder(panelBorder, 1));
 
         ImageIcon coneIcon = new ImageIcon(getClass().getResource("/assets/cone.png"));

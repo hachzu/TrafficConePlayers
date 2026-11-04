@@ -7,10 +7,10 @@ import java.awt.Image;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
-class CanvasBackgroundPanel extends JPanel {
+class TCPBGCanvas extends JPanel {
     private final Image backgroundImage;
 
-    CanvasBackgroundPanel(String resourcePath) {
+    TCPBGCanvas(String resourcePath) {
         super(null);
         backgroundImage = new ImageIcon(getClass().getResource(resourcePath)).getImage();
     }

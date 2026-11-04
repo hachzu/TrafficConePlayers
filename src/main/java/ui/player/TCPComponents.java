@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 
 import javax.swing.JComponent;
 
-public interface PlayerBackend {
+public interface TCPComponents {
     JComponent getView();
     void play();
     void pause();
