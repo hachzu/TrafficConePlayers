@@ -1,4 +1,4 @@
-package ui.player;
+package player;
 
 import java.awt.BorderLayout;
 import java.awt.Color;

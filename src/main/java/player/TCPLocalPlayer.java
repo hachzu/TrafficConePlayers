@@ -1,4 +1,4 @@
-package ui.player;
+package player;
 
 import java.awt.CardLayout;
 import java.net.JarURLConnection;
@@ -6,7 +6,6 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Enumeration;

@@ -1,4 +1,4 @@
-package ui.player;
+package player;
 
 import java.util.function.Consumer;
 

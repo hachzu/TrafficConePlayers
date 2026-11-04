@@ -4,19 +4,19 @@ import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.WindowEvent;
 import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Locale;
 
 import javax.swing.AbstractButton;
 import javax.swing.JFrame;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
-import javax.swing.JToggleButton;
 import javax.swing.plaf.basic.BasicButtonUI;
 import javax.swing.plaf.basic.BasicToggleButtonUI;
 
-import ui.player.TCPLocalPlayer;
+import player.TCPLocalPlayer;
 
 class TCPController {
     private final TCPLandingPage landingPage;
