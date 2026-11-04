@@ -1,20 +1,11 @@
 package player;
 
 import java.awt.CardLayout;
-import java.net.JarURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Enumeration;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.function.Consumer;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -29,6 +20,7 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import database.MediaRepository;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -39,7 +31,6 @@ import javafx.scene.media.MediaView;
 import javafx.util.Duration;
 
 public class TCPLocalPlayer extends JPanel implements TCPComponents {
-    private static final String MEDIA_FOLDER = "/assets/media/";
     private static final String VIDEO_CARD = "video";
     private static final String VINYL_CARD = "vinyl";
 
@@ -60,7 +51,6 @@ public class TCPLocalPlayer extends JPanel implements TCPComponents {
         this(null);
     }
 
-    /** Pass a classpath resource, for example /assets/media/video.mp4. */
     public TCPLocalPlayer(String resourcePath) {
         super(new CardLayout());
         add(videoSurface, VIDEO_CARD);
@@ -68,51 +58,11 @@ public class TCPLocalPlayer extends JPanel implements TCPComponents {
         ((CardLayout) getLayout()).show(this, VINYL_CARD);
         vinylPanel.setPlaying(true);
 
-        playlist = discoverPlaylist(resourcePath);
+        playlist = new ArrayList<>();
+        if (resourcePath != null) playlist.add(resourcePath);
         playlistSize = playlist.size();
-        currentIndex = resourcePath == null ? 0 : playlist.indexOf(resourcePath);
-        if (currentIndex < 0) currentIndex = 0;
+        currentIndex = 0;
         Platform.runLater(() -> loadTrack(currentIndex, false));
-    }
-
-    private static List<String> discoverPlaylist(String selectedResource) {
-        Set<String> resources = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-        try {
-            URL directory = TCPLocalPlayer.class.getResource(MEDIA_FOLDER);
-            if (directory != null && "file".equals(directory.getProtocol())) {
-                try (var paths = Files.list(Path.of(directory.toURI()))) {
-                    paths.filter(Files::isRegularFile)
-                            .map(path -> MEDIA_FOLDER + path.getFileName())
-                            .filter(TCPLocalPlayer::isVideoResource)
-                            .forEach(resources::add);
-                }
-            } else {
-                if (directory != null && "jar".equals(directory.getProtocol())) {
-                    JarURLConnection connection = (JarURLConnection) directory.openConnection();
-                    JarFile jar = connection.getJarFile();
-                    Enumeration<JarEntry> entries = jar.entries();
-                    while (entries.hasMoreElements()) {
-                        String name = entries.nextElement().getName();
-                        String folderPrefix = MEDIA_FOLDER.substring(1);
-                        if (name.startsWith(folderPrefix)
-                                && !name.substring(folderPrefix.length()).contains("/")
-                                && isVideoResource("/" + name)) {
-                            resources.add("/" + name);
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("Could not list " + MEDIA_FOLDER + ": " + e.getMessage());
-        }
-
-        if (selectedResource != null && !resources.contains(selectedResource)) {
-            resources.add(selectedResource);
-        }
-
-        List<String> ordered = new ArrayList<>(resources);
-        ordered.sort(Comparator.comparing(String::toLowerCase));
-        return ordered;
     }
 
     private static boolean isVideoResource(String resource) {
@@ -409,6 +359,12 @@ public class TCPLocalPlayer extends JPanel implements TCPComponents {
         }
         if (source == null || source.isBlank() || playlist.contains(source)) return;
         playlist.add(source);
+        MediaRepository.saveMedia(
+        1,
+        titleFor(source),
+        isAudioResource(source) ? "MP3" : "MP4",
+        source
+        );
         playlistSize = playlist.size();
         if (rows != null && frame != null && frame.isDisplayable()) {
             rebuildPlaylistRows(rows, frame);
