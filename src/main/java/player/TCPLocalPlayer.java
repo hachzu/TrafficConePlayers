@@ -60,7 +60,10 @@ public class TCPLocalPlayer extends JPanel implements TCPComponents {
 
         playlist = new ArrayList<>();
         if (resourcePath != null) playlist.add(resourcePath);
-        playlistSize = playlist.size();
+        for (String savedSource : MediaRepository.loadMedia(1)) {
+        if (!playlist.contains(savedSource)) playlist.add(savedSource);
+        }
+        playlistSize = playlist.size();  
         currentIndex = 0;
         Platform.runLater(() -> loadTrack(currentIndex, false));
     }
@@ -304,6 +307,7 @@ public class TCPLocalPlayer extends JPanel implements TCPComponents {
                 if (answer != JOptionPane.YES_OPTION) return;
                 int playingIndex = currentIndex;
                 playlist.remove(index);
+                MediaRepository.deleteMedia(1, source);
                 playlistSize = playlist.size();
                 if (playlist.isEmpty()) {
                     currentIndex = 0;
