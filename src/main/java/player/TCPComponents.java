@@ -17,3 +17,5 @@ public interface TCPComponents {
     void close();
     void viewplaylist();
 }
+
+
