@@ -31,9 +31,14 @@ public class TCPPlayerTheme {
     }
 
     private TCPPlayerTheme() {
-        this(new Color(255, 165, 0), new Color(105, 38, 0), new Color(255, 224, 178),
-                new Color(35, 23, 16), new Color(255, 180, 40), new Color(82, 170, 0),
-                new Color(255, 128, 0), new Color(255, 102, 0));
+        this(new Color(255, 165, 0), 
+             new Color(105, 38, 0), 
+             new Color(255, 224, 178),
+             new Color(35, 23, 16), 
+             new Color(255, 180, 40), 
+             new Color(82, 170, 0),
+             new Color(255, 128, 0), 
+             new Color(255, 102, 0));
     }
 
     public static TCPPlayerTheme orange() {
