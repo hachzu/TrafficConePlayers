@@ -54,8 +54,14 @@ class TCPController {
             }
         });
 
+        /*Starts the timeline timer to update the timeline every 250 milliseconds
+        so it has 4 ticks per second */
+        
         timelineTimer = new Timer(250, event -> updateTimeline(updatingTimeline));
         timelineTimer.start();
+
+
+        // Buttons and their actions / functionallity 
 
         playerWindow.playPauseButton.addActionListener(event -> {
             if (playerWindow.playPauseButton.isSelected()) localPlayer.play();
@@ -76,11 +82,10 @@ class TCPController {
         });
         playerWindow.playlistButton.addActionListener(event -> localPlayer.viewplaylist());
         playerWindow.importButton.addActionListener(event -> localPlayer.importMedia());
-        playerWindow.videoToggle.addActionListener(event ->
-                localPlayer.setVideoMode(playerWindow.videoToggle.isSelected()));
+        playerWindow.videoToggle.addActionListener(event -> localPlayer.setVideoMode(playerWindow.videoToggle.isSelected()));
         playerWindow.userButton.addActionListener(event ->
-                playerWindow.userMenu.show(playerWindow.userButton, 0,
-                        playerWindow.userButton.getHeight()));
+        playerWindow.userMenu.show(playerWindow.userButton, 0,
+        playerWindow.userButton.getHeight()));
 
         localPlayer.setAudioTrackListener(audioOnly -> SwingUtilities.invokeLater(() -> {
             playerWindow.videoToggle.setEnabled(!audioOnly);
@@ -91,9 +96,8 @@ class TCPController {
         }));
 
         playerWindow.minimizeButton.addActionListener(event ->
-                playerWindow.setState(JFrame.ICONIFIED));
-        playerWindow.closeButton.addActionListener(event -> playerWindow.dispatchEvent(
-                new WindowEvent(playerWindow, WindowEvent.WINDOW_CLOSING)));
+        playerWindow.setState(JFrame.ICONIFIED));
+        playerWindow.closeButton.addActionListener(event -> playerWindow.dispatchEvent( new WindowEvent(playerWindow, WindowEvent.WINDOW_CLOSING)));
         playerWindow.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent event) {
@@ -102,7 +106,7 @@ class TCPController {
             }
         });
 
-        addOrangeClickFeedback(playerWindow.userButton, playerWindow.videoToggle,
+        addButtonClickFeedback(playerWindow.userButton, playerWindow.videoToggle,
                 playerWindow.settingsButton, playerWindow.previousButton,
                 playerWindow.playPauseButton, playerWindow.stopButton, playerWindow.nextButton,
                 playerWindow.shuffleButton, playerWindow.playlistButton, playerWindow.importButton,
@@ -160,7 +164,7 @@ class TCPController {
         return String.format(Locale.ROOT, "%02d:%02d", minutes, remainingSeconds);
     }
 
-    private void addOrangeClickFeedback(AbstractButton... buttons) {
+    private void addButtonClickFeedback(AbstractButton... buttons) {
         var clickColor = playerWindow.theme.clickColor;
 
         for (AbstractButton button : buttons) {

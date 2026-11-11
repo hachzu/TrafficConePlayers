@@ -88,7 +88,7 @@ public class TCPDefaultUI extends JFrame {
         Color buttonBackground = theme.buttonBackground;
         Color buttonBorder = panelBorder;
 
-        JPanel canvas = new TCPBGCanvas("/assets/mainui_bg.png");
+        JPanel canvas = new TCPanel(theme.backgroundImage);
         canvas.setBackground(orange);
         canvas.setPreferredSize(new Dimension(920, 360));
 
@@ -138,7 +138,7 @@ public class TCPDefaultUI extends JFrame {
         volumeSlider.setOpaque(false);
         volumeSlider.setFocusable(false);
         volumeSlider.setToolTipText("Volume");
-        volumeSlider.setUI(new TCPDefaultSliderUI(volumeSlider, 25, 10, 6, true));
+        volumeSlider.setUI(new TCPDefaultSliderUI(volumeSlider, 25, 10, 6, true, buttonBorder, buttonBorder, buttonBorder));
 
         userButton = new JButton("USER  v");
         userButton.setPreferredSize(new Dimension(122, 38));
@@ -216,7 +216,7 @@ public class TCPDefaultUI extends JFrame {
         timelineSlider = new JSlider(0, 1000, 0);
         timelineSlider.setOpaque(false);
         timelineSlider.setToolTipText("Seek position");
-        timelineSlider.setUI(new TCPDefaultSliderUI(timelineSlider, 25, 10, 6, true));
+        timelineSlider.setUI(new TCPDefaultSliderUI(timelineSlider, 25, 10, 6, true, buttonBorder, buttonBorder, buttonBorder));
         timelinePanel.add(timelineSlider, BorderLayout.CENTER);
 
         JPanel controlPanel = new JPanel(new BorderLayout());
@@ -305,6 +305,7 @@ public class TCPDefaultUI extends JFrame {
 
         storeButton = new JButton(new ImageIcon(
                 getClass().getResource("/assets/icons/store.png")));
+
         storeButton.setPreferredSize(buttonSize);
         storeButton.setBackground(buttonBackground);
         storeButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -314,6 +315,7 @@ public class TCPDefaultUI extends JFrame {
 
         gamesButton = new JButton(new ImageIcon(
                 getClass().getResource("/assets/icons/gamepad.png")));
+
         gamesButton.setPreferredSize(buttonSize);
         gamesButton.setBackground(buttonBackground);
         gamesButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -329,6 +331,7 @@ public class TCPDefaultUI extends JFrame {
         ImageIcon coneIcon = new ImageIcon(getClass().getResource("/assets/cone.png"));
         Image smallCone = coneIcon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
         JLabel currencyLabel = new JLabel("1,322", new ImageIcon(smallCone), SwingConstants.CENTER);
+
         currencyLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
         currencyLabel.setIconTextGap(6);
         currencyLabel.setForeground(panelBorder);

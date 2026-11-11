@@ -7,17 +7,22 @@ import java.awt.Image;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
-class TCPBGCanvas extends JPanel {
+class TCPanel extends JPanel {
     private final Image backgroundImage;
 
-    TCPBGCanvas(String resourcePath) {
+    TCPanel(String resourcePath) {
         super(null);
-        backgroundImage = new ImageIcon(getClass().getResource(resourcePath)).getImage();
+        var resource = resourcePath == null ? null : getClass().getResource(resourcePath);
+        backgroundImage = resource == null ? null : new ImageIcon(resource).getImage();
     }
 
     @Override
     protected void paintComponent(Graphics graphics) {
         super.paintComponent(graphics);
+        if (backgroundImage == null) return;
+        int originalWidth = backgroundImage.getWidth(this);
+        int originalHeight = backgroundImage.getHeight(this);
+        if (originalWidth <= 0 || originalHeight <= 0) return;
         double scale = Math.max((double) getWidth() / backgroundImage.getWidth(this),
                 (double) getHeight() / backgroundImage.getHeight(this));
         int imageWidth = (int) (backgroundImage.getWidth(this) * scale);

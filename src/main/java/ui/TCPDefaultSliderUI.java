@@ -12,9 +12,12 @@ class TCPDefaultSliderUI extends BasicSliderUI {
     private final int trackHeight;
     private final int fillHeight;
     private final boolean showEnds;
+    static Color trackcolor = new Color(105, 38, 0);
+    static Color fillcolor = new Color(255, 102, 0);
+    static Color backgroundcolor = new Color(255, 224, 178);
 
     TCPDefaultSliderUI(JSlider slider, int thumbSize, int trackHeight,
-            int fillHeight, boolean showEnds) {
+            int fillHeight, boolean showEnds , Color trackcolor, Color fillcolor, Color backgroundcolor) {
         super(slider);
         this.thumbSize = thumbSize;
         this.trackHeight = trackHeight;
@@ -34,20 +37,20 @@ class TCPDefaultSliderUI extends BasicSliderUI {
         int endX = trackRect.x + trackRect.width;
         int fillX = xPositionForValue(slider.getValue());
 
-        graphics.setColor(new Color(105, 38, 0));
+        graphics.setColor(trackcolor);
         graphics.fillRect(startX, trackY - trackHeight / 2,
                 endX - startX, trackHeight);
-        graphics.setColor(new Color(255, 224, 178));
+        graphics.setColor(backgroundcolor);
         graphics.fillRect(startX, trackY - fillHeight / 2,
                 endX - startX, fillHeight);
         if (fillX > startX) {
-            graphics.setColor(new Color(255, 102, 0));
+            graphics.setColor(fillcolor);
             graphics.fillRect(startX, trackY - fillHeight / 2,
                     fillX - startX, fillHeight);
         }
 
         if (showEnds) {
-            graphics.setColor(new Color(105, 38, 0));
+            graphics.setColor(trackcolor);
             graphics.fillRect(startX - 1, trackY - trackHeight / 2 - 1,
                     2, trackHeight + 2);
             graphics.fillRect(endX - 1, trackY - trackHeight / 2 - 1,
@@ -61,9 +64,9 @@ class TCPDefaultSliderUI extends BasicSliderUI {
 
     @Override
     public void paintThumb(Graphics graphics) {
-        graphics.setColor(new Color(105, 38, 0));
+        graphics.setColor(trackcolor);
         graphics.fillOval(thumbRect.x, thumbRect.y, thumbRect.width, thumbRect.height);
-        graphics.setColor(new Color(255, 102, 0));
+        graphics.setColor(fillcolor);
         graphics.fillOval(thumbRect.x + 2, thumbRect.y + 2,
                 thumbRect.width - 4, thumbRect.height - 4);
     }
