@@ -190,10 +190,12 @@ public class TCPLocalPlayer extends JPanel implements TCPComponents {
             JFileChooser chooser = new JFileChooser();
             chooser.setFileFilter(new FileNameExtensionFilter(
                     "Video and audio files", "mp4", "m4v", "mov", "mp3", "m4a", "wav"));
+                    
             if (chooser.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) return;
 
             File selectedFile = chooser.getSelectedFile();
             if (!isSupportedMedia(selectedFile.toPath())) return;
+
             try {
                 Files.createDirectories(TRACKSFOLDER);
                 String filename = selectedFile.getName();
@@ -208,6 +210,7 @@ public class TCPLocalPlayer extends JPanel implements TCPComponents {
                         "Could not copy the media file:\n" + error.getMessage(),
                         "Import failed", JOptionPane.ERROR_MESSAGE);
             }
+
         });
     }
 

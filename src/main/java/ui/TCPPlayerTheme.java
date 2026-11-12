@@ -138,7 +138,6 @@ public class TCPPlayerTheme {
             properties.setProperty("clickColor", colorHex(clickColor));
             properties.setProperty("backgroundImage", backgroundImage == null ? "" : backgroundImage);
             icons.forEach((key, value) -> properties.setProperty("icon." + key, value));
-            Files.createDirectories(file.getParent());
             try (OutputStream output = Files.newOutputStream(file)) {
             properties.store(output, "Traffic Cone Player theme");
        }

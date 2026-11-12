@@ -19,7 +19,7 @@ class TCPLandingPage extends JFrame {
         setResizable(false);
 
         Image image = new ImageIcon(getClass().getResource(
-                "/assets/landingpage.png")).getImage();
+                "/assets/misc/landingpage.png")).getImage();
         JLabel background = new JLabel(new ImageIcon(
                 image.getScaledInstance(920, 518, Image.SCALE_SMOOTH)));
         background.setLayout(null);

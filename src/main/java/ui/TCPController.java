@@ -82,6 +82,8 @@ class TCPController {
         });
         playerWindow.playlistButton.addActionListener(event -> localPlayer.viewplaylist());
         playerWindow.importButton.addActionListener(event -> localPlayer.importMedia());
+        playerWindow.settingsButton.addActionListener(event ->
+                new TCPThemeEditor(playerWindow).setVisible(true));
         playerWindow.videoToggle.addActionListener(event -> localPlayer.setVideoMode(playerWindow.videoToggle.isSelected()));
         playerWindow.userButton.addActionListener(event ->
         playerWindow.userMenu.show(playerWindow.userButton, 0,

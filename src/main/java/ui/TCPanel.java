@@ -8,12 +8,17 @@ import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
 class TCPanel extends JPanel {
-    private final Image backgroundImage;
+    private Image backgroundImage;
 
     TCPanel(String resourcePath) {
         super(null);
+        setBackgroundImage(resourcePath);
+    }
+
+    void setBackgroundImage(String resourcePath) {
         var resource = resourcePath == null ? null : getClass().getResource(resourcePath);
         backgroundImage = resource == null ? null : new ImageIcon(resource).getImage();
+        repaint();
     }
 
     @Override
