@@ -33,7 +33,7 @@ class TCPController {
         localPlayer = new TCPLocalPlayer();
         playerWindow = new TCPDefaultUI.Builder()
                 .playerDisplay(localPlayer.getView())
-                .theme(TCPPlayerTheme.orange())
+                .theme(TCPPlayerTheme.starter())
                 .build();
         connectControls();
         playerWindow.setVisible(true);

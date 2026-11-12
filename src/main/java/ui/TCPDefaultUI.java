@@ -48,7 +48,7 @@ public class TCPDefaultUI extends JFrame {
     static class Builder {
         private JComponent playerDisplay;
         private String title = "Traffic Cone Player";
-        private TCPPlayerTheme theme = TCPPlayerTheme.orange();
+        private TCPPlayerTheme theme = TCPPlayerTheme.starter();
 
         Builder playerDisplay(JComponent playerDisplay) {
             this.playerDisplay = playerDisplay;

@@ -41,7 +41,7 @@ public class TCPLocalPlayer extends JPanel implements TCPComponents {
     private final List <String> PLAYLIST;
     private final JFXPanel VIDEOSURFACE = new JFXPanel();
     private final TCPVinyl VINYLPANEL = new TCPVinyl();
-    private final Path TRACKSFOLDER = Path.of("src", "main", "java", "player" , "Tracks");
+    private final Path TRACKSFOLDER = Path.of("src", "main", "resources" , "Tracks");
 
     private volatile int currentIndex;
     private volatile int playlistSize;
