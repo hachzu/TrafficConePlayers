@@ -7,6 +7,8 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -50,6 +52,8 @@ public class TCPDefaultUI extends JFrame {
     final JLabel titleLabel;
     final TCPanel canvas;
     final TCPPlayerTheme theme;
+    private final Map<JComponent, String> themedBackgrounds = new IdentityHashMap<>();
+    private final Map<JComponent, String> themedForegrounds = new IdentityHashMap<>();
 
     static class Builder {
         private JComponent playerDisplay;
@@ -89,13 +93,11 @@ public class TCPDefaultUI extends JFrame {
         ImageIcon image = new ImageIcon(getClass().getResource(getIconFromTheme("window")));
         setIconImage(image.getImage());
 
-        Color accent = theme.accent;
         Color panelBorder = theme.panelBorder;
-        Color buttonBackground = theme.buttonBackground;
         Color buttonBorder = panelBorder;
 
         canvas = new TCPanel(theme.backgroundImage);
-        canvas.setBackground(accent);
+        setThemedBackground(canvas, "accent");
         canvas.setPreferredSize(new Dimension(920, 360));
 
         playerDisplay.setBounds(10, 10, 370, 230);
@@ -110,26 +112,26 @@ public class TCPDefaultUI extends JFrame {
         }
 
         JPanel nameDisplayPanel = new JPanel(new GridLayout(2, 1));
-        nameDisplayPanel.setBackground(theme.panelBackground);
+        setThemedBackground(nameDisplayPanel, "panelBackground");
         nameDisplayPanel.setBounds(390, 10, 520, 60);
         nameDisplayPanel.setBorder(BorderFactory.createLineBorder(panelBorder, 2));
 
         trackTitle = new JLabel("TRACK TITLE");
         trackTitle.setFont(pixelFont.deriveFont(18f));
-        trackTitle.setForeground(theme.trackText);
+        setThemedForeground(trackTitle, "textColor");
         trackTitle.setHorizontalAlignment(SwingConstants.LEFT);
         trackTitle.setBorder(BorderFactory.createEmptyBorder(3, 12, 0, 12));
 
         trackInfo = new JLabel("01 / 05   |   00:00 / 00:00");
         trackInfo.setFont(pixelFont.deriveFont(13f));
-        trackInfo.setForeground(theme.trackText);
+        setThemedForeground(trackInfo, "textColor");
         trackInfo.setHorizontalAlignment(SwingConstants.LEFT);
         trackInfo.setBorder(BorderFactory.createEmptyBorder(3, 12, 0, 12));
         nameDisplayPanel.add(trackTitle);
         nameDisplayPanel.add(trackInfo);
 
         JPanel utilityPanel = new JPanel(new BorderLayout(0, 8));
-        utilityPanel.setBackground(theme.panelBackground);
+        setThemedBackground(utilityPanel, "panelBackground");
         utilityPanel.setBounds(390, 80, 520, 160);
         utilityPanel.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(panelBorder, 2),
@@ -143,12 +145,13 @@ public class TCPDefaultUI extends JFrame {
         volumeSlider.setOpaque(false);
         volumeSlider.setFocusable(false);
         volumeSlider.setToolTipText("Volume");
-        volumeSlider.setUI(new TCPDefaultSliderUI(volumeSlider, 25, 10, 6, true, buttonBorder, buttonBorder, buttonBorder));
+        volumeSlider.setUI(new TCPDefaultSliderUI(volumeSlider, 25, 10, 6, true,
+                theme.sliderTrackColor, theme.sliderFillColor, theme.sliderBackgroundColor));
 
         userButton = new JButton("USER  v");
         userButton.setPreferredSize(new Dimension(122, 38));
-        userButton.setBackground(buttonBackground);
-        userButton.setForeground(buttonBorder);
+        setThemedBackground(userButton, "buttonBackground");
+        setThemedForeground(userButton, "buttonTextColor");
         userButton.setFont(pixelFont.deriveFont(14f));
         userButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         userButton.setFocusPainted(false);
@@ -156,11 +159,11 @@ public class TCPDefaultUI extends JFrame {
         userButton.setToolTipText("Open user menu");
 
         userMenu = new JPopupMenu();
-        userMenu.setBackground(buttonBackground);
+        setThemedBackground(userMenu, "buttonBackground");
         userMenu.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         JMenuItem noUsersItem = new JMenuItem("No users available");
-        noUsersItem.setBackground(buttonBackground);
-        noUsersItem.setForeground(buttonBorder);
+        setThemedBackground(noUsersItem, "buttonBackground");
+        setThemedForeground(noUsersItem, "buttonTextColor");
         noUsersItem.setFont(pixelFont.deriveFont(12f));
         noUsersItem.setEnabled(false);
         userMenu.add(noUsersItem);
@@ -178,8 +181,8 @@ public class TCPDefaultUI extends JFrame {
         videoToggle.setHorizontalTextPosition(SwingConstants.RIGHT);
         videoToggle.setIconTextGap(6);
         videoToggle.setPreferredSize(new Dimension(100, 30));
-        videoToggle.setBackground(buttonBackground);
-        videoToggle.setForeground(buttonBorder);
+        setThemedBackground(videoToggle, "buttonBackground");
+        setThemedForeground(videoToggle, "buttonTextColor");
         videoToggle.setFont(pixelFont.deriveFont(12f));
         videoToggle.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         videoToggle.setFocusPainted(false);
@@ -211,7 +214,7 @@ public class TCPDefaultUI extends JFrame {
         utilityPanel.add(utilityBottom, BorderLayout.CENTER);
 
         JPanel timelinePanel = new JPanel(new BorderLayout());
-        timelinePanel.setBackground(theme.timelineBackground);
+        setThemedBackground(timelinePanel, "timelineBackground");
         timelinePanel.setBounds(0, 260, 920, 40);
         timelinePanel.setBorder(BorderFactory.createEmptyBorder(2, 10, 2, 10));
         timelinePanel.setOpaque(false);
@@ -219,11 +222,12 @@ public class TCPDefaultUI extends JFrame {
         timelineSlider = new JSlider(0, 1000, 0);
         timelineSlider.setOpaque(false);
         timelineSlider.setToolTipText("Seek position");
-        timelineSlider.setUI(new TCPDefaultSliderUI(timelineSlider, 25, 10, 6, true, buttonBorder, buttonBorder, buttonBorder));
+        timelineSlider.setUI(new TCPDefaultSliderUI(timelineSlider, 25, 10, 6, true,
+                theme.sliderTrackColor, theme.sliderFillColor, theme.sliderBackgroundColor));
         timelinePanel.add(timelineSlider, BorderLayout.CENTER);
 
         JPanel controlPanel = new JPanel(new BorderLayout());
-        controlPanel.setBackground(theme.controlBackground);
+        setThemedBackground(controlPanel, "controlBackground");
         controlPanel.setBounds(0, 310, 920, 50);
 
         JPanel playbackButtons = new JPanel(new GridLayout(1, 6, 8, 0));
@@ -233,7 +237,7 @@ public class TCPDefaultUI extends JFrame {
 
         previousButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("previous"))));
         previousButton.setPreferredSize(buttonSize);
-        previousButton.setBackground(buttonBackground);
+        setThemedBackground(previousButton, "buttonBackground");
         previousButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         previousButton.setFocusPainted(false);
         previousButton.setToolTipText("Previous track");
@@ -242,7 +246,7 @@ public class TCPDefaultUI extends JFrame {
         playPauseButton = new JToggleButton(new ImageIcon(getClass().getResource(getIconFromTheme("play"))));
         playPauseButton.setSelectedIcon(new ImageIcon(getClass().getResource(getIconFromTheme("pause"))));
         playPauseButton.setPreferredSize(buttonSize);
-        playPauseButton.setBackground(buttonBackground);
+        setThemedBackground(playPauseButton, "buttonBackground");
         playPauseButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         playPauseButton.setFocusPainted(false);
         playPauseButton.setToolTipText("Play or pause");
@@ -251,7 +255,7 @@ public class TCPDefaultUI extends JFrame {
 
         stopButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("stop"))));
         stopButton.setPreferredSize(buttonSize);
-        stopButton.setBackground(buttonBackground);
+        setThemedBackground(stopButton, "buttonBackground");
         stopButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         stopButton.setFocusPainted(false);
         stopButton.setToolTipText("Stop");
@@ -259,7 +263,7 @@ public class TCPDefaultUI extends JFrame {
 
         nextButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("next"))));
         nextButton.setPreferredSize(buttonSize);
-        nextButton.setBackground(buttonBackground);
+        setThemedBackground(nextButton, "buttonBackground");
         nextButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         nextButton.setFocusPainted(false);
         nextButton.setToolTipText("Next track");
@@ -268,7 +272,7 @@ public class TCPDefaultUI extends JFrame {
         shuffleButton = new JToggleButton(new ImageIcon(getClass().getResource(getIconFromTheme("shuffleOff"))));
         shuffleButton.setSelectedIcon(new ImageIcon(getClass().getResource(getIconFromTheme("shuffle"))));
         shuffleButton.setPreferredSize(buttonSize);
-        shuffleButton.setBackground(buttonBackground);
+        setThemedBackground(shuffleButton, "buttonBackground");
         shuffleButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         shuffleButton.setFocusPainted(false);
         shuffleButton.setToolTipText("Toggle shuffle");
@@ -276,7 +280,7 @@ public class TCPDefaultUI extends JFrame {
 
         playlistButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("playlist"))));
         playlistButton.setPreferredSize(buttonSize);
-        playlistButton.setBackground(buttonBackground);
+        setThemedBackground(playlistButton, "buttonBackground");
         playlistButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         playlistButton.setFocusPainted(false);
         playlistButton.setToolTipText("Current playlist");
@@ -291,7 +295,7 @@ public class TCPDefaultUI extends JFrame {
 
         importButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("import"))));
         importButton.setPreferredSize(buttonSize);
-        importButton.setBackground(buttonBackground);
+        setThemedBackground(importButton, "buttonBackground");
         importButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         importButton.setFocusPainted(false);
         importButton.setToolTipText("Import video or URL to playlist");
@@ -300,7 +304,7 @@ public class TCPDefaultUI extends JFrame {
         storeButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("store"))));
 
         storeButton.setPreferredSize(buttonSize);
-        storeButton.setBackground(buttonBackground);
+        setThemedBackground(storeButton, "buttonBackground");
         storeButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         storeButton.setFocusPainted(false);
         storeButton.setToolTipText("Store");
@@ -309,7 +313,7 @@ public class TCPDefaultUI extends JFrame {
         gamesButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("games"))));
 
         gamesButton.setPreferredSize(buttonSize);
-        gamesButton.setBackground(buttonBackground);
+        setThemedBackground(gamesButton, "buttonBackground");
         gamesButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         gamesButton.setFocusPainted(false);
         gamesButton.setToolTipText("Games");
@@ -317,7 +321,7 @@ public class TCPDefaultUI extends JFrame {
 
         JPanel currencyDisplay = new JPanel(new BorderLayout());
         currencyDisplay.setPreferredSize(new Dimension(112, 40));
-        currencyDisplay.setBackground(theme.buttonBackground);
+        setThemedBackground(currencyDisplay, "buttonBackground");
         currencyDisplay.setBorder(BorderFactory.createLineBorder(panelBorder, 1));
 
         ImageIcon coneIcon = new ImageIcon(getClass().getResource(getIconFromTheme("currency")));
@@ -326,7 +330,7 @@ public class TCPDefaultUI extends JFrame {
 
         currencyLabel.setHorizontalTextPosition(SwingConstants.RIGHT);
         currencyLabel.setIconTextGap(6);
-        currencyLabel.setForeground(panelBorder);
+        setThemedForeground(currencyLabel, "buttonTextColor");
         currencyLabel.setFont(pixelFont.deriveFont(Font.BOLD, 15f));
         currencyDisplay.add(currencyLabel, BorderLayout.CENTER);
 
@@ -344,13 +348,13 @@ public class TCPDefaultUI extends JFrame {
 
         titleBar = new JPanel(new BorderLayout());
         titleBar.setPreferredSize(new Dimension(920, 36));
-        titleBar.setBackground(panelBorder);
+        setThemedBackground(titleBar, "panelBorder");
 
         titleLabel = new JLabel("Traffic Cone Player");
         titleLabel.setIcon(new ImageIcon(image.getImage()
                 .getScaledInstance(24, 24, Image.SCALE_SMOOTH)));
         titleLabel.setIconTextGap(8);
-        titleLabel.setForeground(Color.WHITE);
+        setThemedForeground(titleLabel, "textColor");
         titleLabel.setFont(pixelFont.deriveFont(Font.BOLD, 14f));
         titleLabel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
         titleBar.add(titleLabel, BorderLayout.CENTER);
@@ -369,8 +373,8 @@ public class TCPDefaultUI extends JFrame {
 
         for (JButton button : new JButton[] {minimizeButton, closeButton}) {
             button.setPreferredSize(new Dimension(34, 28));
-            button.setBackground(accent);
-            button.setForeground(panelBorder);
+            setThemedBackground(button, "accent");
+            setThemedForeground(button, "buttonTextColor");
             button.setBorder(BorderFactory.createLineBorder(panelBorder, 1));
             button.setFocusPainted(false);
             button.setFont(pixelFont.deriveFont(Font.BOLD, 16f));
@@ -387,12 +391,6 @@ public class TCPDefaultUI extends JFrame {
         pack();
         setLocationRelativeTo(null);
 
-        try {
-            applyTheme(TCPPlayerTheme.load(
-                    TCPPlayerTheme.themesDirectory().resolve("teto.properties")));
-        } catch (java.io.IOException error) {
-            throw new IllegalStateException("Could not load Teto theme", error);
-        }
     }
 
     //misc methods 
@@ -443,7 +441,9 @@ public class TCPDefaultUI extends JFrame {
         String path = getIconFromTheme(key);
         if (path == null) return null;
         java.net.URL resource = getClass().getResource(path);
-        return resource == null ? null : new ImageIcon(resource);
+        if (resource != null) return new ImageIcon(resource);
+        ImageIcon fileIcon = new ImageIcon(path);
+        return fileIcon.getIconWidth() > 0 ? fileIcon : null;
     }
 
     private void applyThemeIcons() {
@@ -477,59 +477,67 @@ public class TCPDefaultUI extends JFrame {
 
     
 
-    void applyTheme(TCPPlayerTheme updated){
-        if (updated == null){
-                throw new IllegalArgumentException("Theme Can Not be Null");
+    private void setThemedBackground(JComponent component, String role) {
+        themedBackgrounds.put(component, role);
+        component.setBackground(colorForRole(theme, role));
+    }
+
+    private void setThemedForeground(JComponent component, String role) {
+        themedForegrounds.put(component, role);
+        component.setForeground(colorForRole(theme, role));
+    }
+
+    private Color colorForRole(TCPPlayerTheme source, String role) {
+        return switch (role) {
+            case "accent" -> source.accent;
+            case "panelBorder" -> source.panelBorder;
+            case "buttonBackground" -> source.buttonBackground;
+            case "panelBackground" -> source.panelBackground;
+            case "textColor" -> source.textColor;
+            case "buttonTextColor" -> source.buttonTextColor;
+            case "timelineBackground" -> source.timelineBackground;
+            case "controlBackground" -> source.controlBackground;
+            default -> throw new IllegalArgumentException("Unknown theme color role: " + role);
+        };
+    }
+
+    void applyTheme(TCPPlayerTheme updated) {
+        if (updated == null) {
+            throw new IllegalArgumentException("Theme cannot be null");
         }
 
-        TCPPlayerTheme previous = theme.copy();
-
-        applyThemeTo(getContentPane(), previous, updated);
-        applyThemeTo(userMenu, previous, updated);
+        themedBackgrounds.forEach((component, role) ->
+                component.setBackground(colorForRole(updated, role)));
+        themedForegrounds.forEach((component, role) ->
+                component.setForeground(colorForRole(updated, role)));
 
         theme.accent = updated.accent;
         theme.panelBorder = updated.panelBorder;
         theme.buttonBackground = updated.buttonBackground;
         theme.panelBackground = updated.panelBackground;
-        theme.trackText = updated.trackText;
+        theme.textColor = updated.textColor;
+        theme.buttonTextColor = updated.buttonTextColor;
         theme.timelineBackground = updated.timelineBackground;
         theme.controlBackground = updated.controlBackground;
         theme.clickColor = updated.clickColor;
+        theme.sliderTrackColor = updated.sliderTrackColor;
+        theme.sliderFillColor = updated.sliderFillColor;
+        theme.sliderBackgroundColor = updated.sliderBackgroundColor;
         theme.backgroundImage = updated.backgroundImage;
         theme.themeName = updated.themeName;
         theme.icons.clear();
         theme.icons.putAll(updated.icons);
 
         canvas.setBackgroundImage(updated.backgroundImage);
+        volumeSlider.setUI(new TCPDefaultSliderUI(volumeSlider, 25, 10, 6, true,
+                theme.sliderTrackColor, theme.sliderFillColor, theme.sliderBackgroundColor));
+        timelineSlider.setUI(new TCPDefaultSliderUI(timelineSlider, 25, 10, 6, true,
+                theme.sliderTrackColor, theme.sliderFillColor, theme.sliderBackgroundColor));
         applyThemeIcons();
         revalidate();
         repaint();
 
     }
 
-    private void applyThemeTo(java.awt.Container parent, TCPPlayerTheme oldTheme, TCPPlayerTheme newTheme) {
-        for (java.awt.Component component : parent.getComponents()) {
-            Color background = component.getBackground();
-            if (background != null) {
-                if (background.equals(oldTheme.accent)) {
-                    component.setBackground(newTheme.accent);
-                } else if (background.equals(oldTheme.buttonBackground)) {
-                    component.setBackground(newTheme.buttonBackground);
-                } else if (background.equals(oldTheme.panelBackground)) {
-                    component.setBackground(newTheme.panelBackground);
-                } else if (background.equals(oldTheme.timelineBackground)) {
-                    component.setBackground(newTheme.timelineBackground);
-                } else if (background.equals(oldTheme.controlBackground)) {
-                    component.setBackground(newTheme.controlBackground);
-                } else if (background.equals(oldTheme.panelBorder)) {
-                    component.setBackground(newTheme.panelBorder);
-                }
-            }
-
-            if (component instanceof java.awt.Container child) {
-                applyThemeTo(child, oldTheme, newTheme);
-            }
-        }
-    }
 }
 

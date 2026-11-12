@@ -17,7 +17,14 @@ class TCPanel extends JPanel {
 
     void setBackgroundImage(String resourcePath) {
         var resource = resourcePath == null ? null : getClass().getResource(resourcePath);
-        backgroundImage = resource == null ? null : new ImageIcon(resource).getImage();
+        if (resource != null) {
+            backgroundImage = new ImageIcon(resource).getImage();
+        } else if (resourcePath != null) {
+            ImageIcon fileImage = new ImageIcon(resourcePath);
+            backgroundImage = fileImage.getIconWidth() > 0 ? fileImage.getImage() : null;
+        } else {
+            backgroundImage = null;
+        }
         repaint();
     }
 

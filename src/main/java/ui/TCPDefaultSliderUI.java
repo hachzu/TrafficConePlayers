@@ -12,9 +12,9 @@ class TCPDefaultSliderUI extends BasicSliderUI {
     private final int trackHeight;
     private final int fillHeight;
     private final boolean showEnds;
-    static Color trackcolor = new Color(105, 38, 0);
-    static Color fillcolor = new Color(255, 102, 0);
-    static Color backgroundcolor = new Color(255, 224, 178);
+    private final Color trackcolor;
+    private final Color fillcolor;
+    private final Color backgroundcolor;
 
     TCPDefaultSliderUI(JSlider slider, int thumbSize, int trackHeight,
             int fillHeight, boolean showEnds , Color trackcolor, Color fillcolor, Color backgroundcolor) {
@@ -23,6 +23,9 @@ class TCPDefaultSliderUI extends BasicSliderUI {
         this.trackHeight = trackHeight;
         this.fillHeight = fillHeight;
         this.showEnds = showEnds;
+        this.trackcolor = trackcolor;
+        this.fillcolor = fillcolor;
+        this.backgroundcolor = backgroundcolor;
     }
 
     @Override

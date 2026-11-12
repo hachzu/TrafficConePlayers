@@ -14,10 +14,14 @@ public class TCPPlayerTheme {
     Color panelBorder;
     Color buttonBackground;
     Color panelBackground;
-    Color trackText;
+    Color textColor;
+    Color buttonTextColor;
     Color timelineBackground;
     Color controlBackground;
     Color clickColor;
+    Color sliderTrackColor;
+    Color sliderFillColor;
+    Color sliderBackgroundColor;
     String backgroundImage;
     String themeName;
     HashMap <String , String> icons = new HashMap<>();
@@ -29,13 +33,17 @@ public class TCPPlayerTheme {
             panelBorder, 
             buttonBackground, 
             panelBackground,
-            trackText, 
+            textColor, 
             timelineBackground, 
             controlBackground, 
             clickColor, 
             backgroundImage,
             themeName);
         copy.icons.putAll(icons);
+        copy.buttonTextColor = buttonTextColor;
+        copy.sliderTrackColor = sliderTrackColor;
+        copy.sliderFillColor = sliderFillColor;
+        copy.sliderBackgroundColor = sliderBackgroundColor;
         return copy;
     }
 
@@ -44,7 +52,7 @@ public class TCPPlayerTheme {
         Color panelBorder, 
         Color buttonBackground,
         Color panelBackground, 
-        Color trackText, 
+        Color textColor, 
         Color timelineBackground,
         Color controlBackground, 
         Color clickColor , 
@@ -55,10 +63,14 @@ public class TCPPlayerTheme {
         this.panelBorder = panelBorder;
         this.buttonBackground = buttonBackground;
         this.panelBackground = panelBackground;
-        this.trackText = trackText;
+        this.textColor = textColor;
+        this.buttonTextColor = panelBorder;
         this.timelineBackground = timelineBackground;
         this.controlBackground = controlBackground;
         this.clickColor = clickColor;
+        this.sliderTrackColor = panelBorder;
+        this.sliderFillColor = clickColor;
+        this.sliderBackgroundColor = buttonBackground;
         this.backgroundImage = backgroundImage;
         this.themeName = theme;
     }
@@ -98,12 +110,17 @@ public class TCPPlayerTheme {
        theme.themeName = properties.getProperty("name", fallbackName);
        theme.accent = readColor(properties, "accent", theme.accent);
        theme.panelBorder = readColor(properties, "panelBorder", theme.panelBorder);
+       theme.buttonTextColor = readColor(properties, "buttonTextColor", theme.panelBorder);
        theme.buttonBackground = readColor(properties, "buttonBackground", theme.buttonBackground);
        theme.panelBackground = readColor(properties, "panelBackground", theme.panelBackground);
-       theme.trackText = readColor(properties, "trackText", theme.trackText);
+       theme.textColor = readColor(properties, "textColor",
+               readColor(properties, "trackText", theme.textColor));
        theme.timelineBackground = readColor(properties, "timelineBackground", theme.timelineBackground);
        theme.controlBackground = readColor(properties, "controlBackground", theme.controlBackground);
        theme.clickColor = readColor(properties, "clickColor", theme.clickColor);
+       theme.sliderTrackColor = readColor(properties, "sliderTrackColor", theme.panelBorder);
+       theme.sliderFillColor = readColor(properties, "sliderFillColor", theme.clickColor);
+       theme.sliderBackgroundColor = readColor(properties, "sliderBackgroundColor", theme.buttonBackground);
        theme.backgroundImage = properties.getProperty("backgroundImage", theme.backgroundImage);
 
        for (String key : properties.stringPropertyNames()) {
@@ -132,10 +149,14 @@ public class TCPPlayerTheme {
             properties.setProperty("panelBorder", colorHex(panelBorder));
             properties.setProperty("buttonBackground", colorHex(buttonBackground));
             properties.setProperty("panelBackground", colorHex(panelBackground));
-            properties.setProperty("trackText", colorHex(trackText));
+            properties.setProperty("textColor", colorHex(textColor));
+            properties.setProperty("buttonTextColor", colorHex(buttonTextColor));
             properties.setProperty("timelineBackground", colorHex(timelineBackground));
             properties.setProperty("controlBackground", colorHex(controlBackground));
             properties.setProperty("clickColor", colorHex(clickColor));
+            properties.setProperty("sliderTrackColor", colorHex(sliderTrackColor));
+            properties.setProperty("sliderFillColor", colorHex(sliderFillColor));
+            properties.setProperty("sliderBackgroundColor", colorHex(sliderBackgroundColor));
             properties.setProperty("backgroundImage", backgroundImage == null ? "" : backgroundImage);
             icons.forEach((key, value) -> properties.setProperty("icon." + key, value));
             try (OutputStream output = Files.newOutputStream(file)) {
