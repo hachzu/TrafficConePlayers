@@ -90,7 +90,7 @@ public class TCPDefaultUI extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle(title);
 
-        ImageIcon image = new ImageIcon(getClass().getResource(getIconFromTheme("window")));
+        ImageIcon image = themeIconOrEmpty("window");
         setIconImage(image.getImage());
 
         Color panelBorder = theme.panelBorder;
@@ -140,7 +140,7 @@ public class TCPDefaultUI extends JFrame {
         JPanel utilityTop = new JPanel(new BorderLayout(10, 0));
         utilityTop.setOpaque(false);
 
-        volumeIcon = new JLabel(new ImageIcon(getClass().getResource(getIconFromTheme("volume"))));
+        volumeIcon = new JLabel(themeIconOrEmpty("volume"));
         volumeSlider = new JSlider(0, 100, 70);
         volumeSlider.setOpaque(false);
         volumeSlider.setFocusable(false);
@@ -175,7 +175,7 @@ public class TCPDefaultUI extends JFrame {
         JPanel utilityBottom = new JPanel(new BorderLayout());
         utilityBottom.setOpaque(false);
 
-        ImageIcon videoIcon = new ImageIcon(getClass().getResource(getIconFromTheme("video")));
+        ImageIcon videoIcon = themeIconOrEmpty("video");
         videoIcon = new ImageIcon(videoIcon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH));
         videoToggle = new JToggleButton("VIDEO", videoIcon);
         videoToggle.setHorizontalTextPosition(SwingConstants.RIGHT);
@@ -194,7 +194,7 @@ public class TCPDefaultUI extends JFrame {
         videoPosition.setOpaque(false);
         videoPosition.add(videoToggle, BorderLayout.NORTH);
 
-        settingsButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("settings"))));
+        settingsButton = new JButton(themeIconOrEmpty("settings"));
         settingsButton.setPreferredSize(new Dimension(32, 32));
         settingsButton.setMargin(new Insets(0, 0, 0, 0));
         settingsButton.setOpaque(false);
@@ -235,7 +235,7 @@ public class TCPDefaultUI extends JFrame {
         playbackButtons.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         Dimension buttonSize = new Dimension(44, 40);
 
-        previousButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("previous"))));
+        previousButton = new JButton(themeIconOrEmpty("previous"));
         previousButton.setPreferredSize(buttonSize);
         setThemedBackground(previousButton, "buttonBackground");
         previousButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -243,8 +243,8 @@ public class TCPDefaultUI extends JFrame {
         previousButton.setToolTipText("Previous track");
         playbackButtons.add(previousButton);
 
-        playPauseButton = new JToggleButton(new ImageIcon(getClass().getResource(getIconFromTheme("play"))));
-        playPauseButton.setSelectedIcon(new ImageIcon(getClass().getResource(getIconFromTheme("pause"))));
+        playPauseButton = new JToggleButton(themeIconOrEmpty("play"));
+        playPauseButton.setSelectedIcon(themeIconOrEmpty("pause"));
         playPauseButton.setPreferredSize(buttonSize);
         setThemedBackground(playPauseButton, "buttonBackground");
         playPauseButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -253,7 +253,7 @@ public class TCPDefaultUI extends JFrame {
         playPauseButton.setSelected(false);
         playbackButtons.add(playPauseButton);
 
-        stopButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("stop"))));
+        stopButton = new JButton(themeIconOrEmpty("stop"));
         stopButton.setPreferredSize(buttonSize);
         setThemedBackground(stopButton, "buttonBackground");
         stopButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -261,7 +261,7 @@ public class TCPDefaultUI extends JFrame {
         stopButton.setToolTipText("Stop");
         playbackButtons.add(stopButton);
 
-        nextButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("next"))));
+        nextButton = new JButton(themeIconOrEmpty("next"));
         nextButton.setPreferredSize(buttonSize);
         setThemedBackground(nextButton, "buttonBackground");
         nextButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -269,8 +269,8 @@ public class TCPDefaultUI extends JFrame {
         nextButton.setToolTipText("Next track");
         playbackButtons.add(nextButton);
 
-        shuffleButton = new JToggleButton(new ImageIcon(getClass().getResource(getIconFromTheme("shuffleOff"))));
-        shuffleButton.setSelectedIcon(new ImageIcon(getClass().getResource(getIconFromTheme("shuffle"))));
+        shuffleButton = new JToggleButton(themeIconOrEmpty("shuffleOff"));
+        shuffleButton.setSelectedIcon(themeIconOrEmpty("shuffle"));
         shuffleButton.setPreferredSize(buttonSize);
         setThemedBackground(shuffleButton, "buttonBackground");
         shuffleButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -278,7 +278,7 @@ public class TCPDefaultUI extends JFrame {
         shuffleButton.setToolTipText("Toggle shuffle");
         playbackButtons.add(shuffleButton);
 
-        playlistButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("playlist"))));
+        playlistButton = new JButton(themeIconOrEmpty("playlist"));
         playlistButton.setPreferredSize(buttonSize);
         setThemedBackground(playlistButton, "buttonBackground");
         playlistButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -293,7 +293,7 @@ public class TCPDefaultUI extends JFrame {
         JPanel utilityIconButtons = new JPanel(new GridLayout(1, 3, 8, 0));
         utilityIconButtons.setOpaque(false);
 
-        importButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("import"))));
+        importButton = new JButton(themeIconOrEmpty("import"));
         importButton.setPreferredSize(buttonSize);
         setThemedBackground(importButton, "buttonBackground");
         importButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
@@ -301,7 +301,7 @@ public class TCPDefaultUI extends JFrame {
         importButton.setToolTipText("Import video or URL to playlist");
         utilityIconButtons.add(importButton);
 
-        storeButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("store"))));
+        storeButton = new JButton(themeIconOrEmpty("store"));
 
         storeButton.setPreferredSize(buttonSize);
         setThemedBackground(storeButton, "buttonBackground");
@@ -310,7 +310,7 @@ public class TCPDefaultUI extends JFrame {
         storeButton.setToolTipText("Store");
         utilityIconButtons.add(storeButton);
 
-        gamesButton = new JButton(new ImageIcon(getClass().getResource(getIconFromTheme("games"))));
+        gamesButton = new JButton(themeIconOrEmpty("games"));
 
         gamesButton.setPreferredSize(buttonSize);
         setThemedBackground(gamesButton, "buttonBackground");
@@ -324,7 +324,7 @@ public class TCPDefaultUI extends JFrame {
         setThemedBackground(currencyDisplay, "buttonBackground");
         currencyDisplay.setBorder(BorderFactory.createLineBorder(panelBorder, 1));
 
-        ImageIcon coneIcon = new ImageIcon(getClass().getResource(getIconFromTheme("currency")));
+        ImageIcon coneIcon = themeIconOrEmpty("currency");
         Image smallCone = coneIcon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
         currencyLabel = new JLabel("1,322", new ImageIcon(smallCone), SwingConstants.CENTER);
 
@@ -444,6 +444,11 @@ public class TCPDefaultUI extends JFrame {
         if (resource != null) return new ImageIcon(resource);
         ImageIcon fileIcon = new ImageIcon(path);
         return fileIcon.getIconWidth() > 0 ? fileIcon : null;
+    }
+
+    private ImageIcon themeIconOrEmpty(String key) {
+        ImageIcon icon = themeIcon(key);
+        return icon == null ? new ImageIcon() : icon;
     }
 
     private void applyThemeIcons() {

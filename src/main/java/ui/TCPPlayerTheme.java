@@ -100,7 +100,19 @@ public class TCPPlayerTheme {
        try (InputStream input = Files.newInputStream(file)) {
            properties.load(input);
        }
-       return fromProperties(properties, null, file.getFileName().toString());
+       TCPPlayerTheme theme = fromProperties(properties, null, file.getFileName().toString());
+       theme.backgroundImage = resolveAssetPath(file.getParent(), theme.backgroundImage);
+       theme.icons.replaceAll((key, value) -> resolveAssetPath(file.getParent(), value));
+       return theme;
+   }
+
+   private static String resolveAssetPath(Path themeDirectory, String value) {
+       if (value == null || value.isBlank() || TCPPlayerTheme.class.getResource(value) != null) {
+           return value;
+       }
+       Path path = Path.of(value);
+       if (path.isAbsolute()) return value;
+       return themeDirectory.resolve(path).normalize().toAbsolutePath().toString();
    }
 
    private static TCPPlayerTheme fromProperties(Properties properties, TCPPlayerTheme theme, String fallbackName) {

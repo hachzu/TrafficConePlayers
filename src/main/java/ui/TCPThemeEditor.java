@@ -6,6 +6,7 @@ import java.awt.GridLayout;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -219,14 +220,46 @@ final class TCPThemeEditor extends JDialog {
         }
 
         try {
-            editedTheme.themeName = name;
-            editedTheme.save(destination);
-            owner.applyTheme(editedTheme);
+            TCPPlayerTheme themeToSave = editedTheme.copy();
+            themeToSave.themeName = name;
+            Path assetDirectory = TCPPlayerTheme.themesDirectory().resolve(safeName);
+            Path iconDirectory = assetDirectory.resolve("icons");
+
+            themeToSave.backgroundImage = copyCustomAsset(
+                    themeToSave.backgroundImage, assetDirectory, "background");
+            for (var entry : themeToSave.icons.entrySet()) {
+                entry.setValue(copyCustomAsset(entry.getValue(), iconDirectory, entry.getKey()));
+            }
+
+            themeToSave.save(destination);
+            owner.applyTheme(TCPPlayerTheme.load(destination));
             dispose();
         } catch (IOException | RuntimeException error) {
             JOptionPane.showMessageDialog(this, "Could not save theme:\n" + error.getMessage(),
                     "Save failed", JOptionPane.ERROR_MESSAGE);
         }
+    }
+
+    private String copyCustomAsset(String value, Path destinationDirectory, String targetName)
+            throws IOException {
+        if (value == null || value.isBlank() || getClass().getResource(value) != null) {
+            return value;
+        }
+
+        Path source = Path.of(value);
+        if (!Files.isRegularFile(source)) {
+            throw new IOException("Selected image file no longer exists: " + source);
+        }
+
+        Files.createDirectories(destinationDirectory);
+        String filename = source.getFileName().toString();
+        int extensionStart = filename.lastIndexOf('.');
+        String extension = extensionStart >= 0 ? filename.substring(extensionStart) : ".img";
+        Path destination = destinationDirectory.resolve(targetName + extension);
+        Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
+
+        Path themesRoot = TCPPlayerTheme.themesDirectory();
+        return themesRoot.relativize(destination).toString().replace('\\', '/');
     }
 
     private void cancelEditing() {
