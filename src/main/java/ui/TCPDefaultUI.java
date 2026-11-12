@@ -54,6 +54,8 @@ public class TCPDefaultUI extends JFrame {
     final TCPPlayerTheme theme;
     private final Map<JComponent, String> themedBackgrounds = new IdentityHashMap<>();
     private final Map<JComponent, String> themedForegrounds = new IdentityHashMap<>();
+    private final Map<AbstractButton, String> themedButtonIcons = new IdentityHashMap<>();
+    private final Map<JToggleButton, String> themedSelectedIcons = new IdentityHashMap<>();
 
     static class Builder {
         private JComponent playerDisplay;
@@ -175,12 +177,11 @@ public class TCPDefaultUI extends JFrame {
         JPanel utilityBottom = new JPanel(new BorderLayout());
         utilityBottom.setOpaque(false);
 
-        ImageIcon videoIcon = themeIconOrEmpty("video");
-        videoIcon = new ImageIcon(videoIcon.getImage().getScaledInstance(18, 18, Image.SCALE_SMOOTH));
-        videoToggle = new JToggleButton("VIDEO", videoIcon);
+        videoToggle = new JToggleButton("VIDEO");
         videoToggle.setHorizontalTextPosition(SwingConstants.RIGHT);
         videoToggle.setIconTextGap(6);
         videoToggle.setPreferredSize(new Dimension(100, 30));
+        registerThemedButtonIcon(videoToggle, "video");
         setThemedBackground(videoToggle, "buttonBackground");
         setThemedForeground(videoToggle, "buttonTextColor");
         videoToggle.setFont(pixelFont.deriveFont(12f));
@@ -194,8 +195,9 @@ public class TCPDefaultUI extends JFrame {
         videoPosition.setOpaque(false);
         videoPosition.add(videoToggle, BorderLayout.NORTH);
 
-        settingsButton = new JButton(themeIconOrEmpty("settings"));
+        settingsButton = new JButton();
         settingsButton.setPreferredSize(new Dimension(32, 32));
+        registerThemedButtonIcon(settingsButton, "settings");
         settingsButton.setMargin(new Insets(0, 0, 0, 0));
         settingsButton.setOpaque(false);
         settingsButton.setContentAreaFilled(false);
@@ -235,17 +237,19 @@ public class TCPDefaultUI extends JFrame {
         playbackButtons.setBorder(BorderFactory.createEmptyBorder(5, 8, 5, 8));
         Dimension buttonSize = new Dimension(44, 40);
 
-        previousButton = new JButton(themeIconOrEmpty("previous"));
+        previousButton = new JButton();
         previousButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(previousButton, "previous");
         setThemedBackground(previousButton, "buttonBackground");
         previousButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         previousButton.setFocusPainted(false);
         previousButton.setToolTipText("Previous track");
         playbackButtons.add(previousButton);
 
-        playPauseButton = new JToggleButton(themeIconOrEmpty("play"));
-        playPauseButton.setSelectedIcon(themeIconOrEmpty("pause"));
+        playPauseButton = new JToggleButton();
         playPauseButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(playPauseButton, "play");
+        registerThemedSelectedIcon(playPauseButton, "pause");
         setThemedBackground(playPauseButton, "buttonBackground");
         playPauseButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         playPauseButton.setFocusPainted(false);
@@ -253,33 +257,37 @@ public class TCPDefaultUI extends JFrame {
         playPauseButton.setSelected(false);
         playbackButtons.add(playPauseButton);
 
-        stopButton = new JButton(themeIconOrEmpty("stop"));
+        stopButton = new JButton();
         stopButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(stopButton, "stop");
         setThemedBackground(stopButton, "buttonBackground");
         stopButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         stopButton.setFocusPainted(false);
         stopButton.setToolTipText("Stop");
         playbackButtons.add(stopButton);
 
-        nextButton = new JButton(themeIconOrEmpty("next"));
+        nextButton = new JButton();
         nextButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(nextButton, "next");
         setThemedBackground(nextButton, "buttonBackground");
         nextButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         nextButton.setFocusPainted(false);
         nextButton.setToolTipText("Next track");
         playbackButtons.add(nextButton);
 
-        shuffleButton = new JToggleButton(themeIconOrEmpty("shuffleOff"));
-        shuffleButton.setSelectedIcon(themeIconOrEmpty("shuffle"));
+        shuffleButton = new JToggleButton();
         shuffleButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(shuffleButton, "shuffleOff");
+        registerThemedSelectedIcon(shuffleButton, "shuffle");
         setThemedBackground(shuffleButton, "buttonBackground");
         shuffleButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         shuffleButton.setFocusPainted(false);
         shuffleButton.setToolTipText("Toggle shuffle");
         playbackButtons.add(shuffleButton);
 
-        playlistButton = new JButton(themeIconOrEmpty("playlist"));
+        playlistButton = new JButton();
         playlistButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(playlistButton, "playlist");
         setThemedBackground(playlistButton, "buttonBackground");
         playlistButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         playlistButton.setFocusPainted(false);
@@ -293,26 +301,29 @@ public class TCPDefaultUI extends JFrame {
         JPanel utilityIconButtons = new JPanel(new GridLayout(1, 3, 8, 0));
         utilityIconButtons.setOpaque(false);
 
-        importButton = new JButton(themeIconOrEmpty("import"));
+        importButton = new JButton();
         importButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(importButton, "import");
         setThemedBackground(importButton, "buttonBackground");
         importButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         importButton.setFocusPainted(false);
         importButton.setToolTipText("Import video or URL to playlist");
         utilityIconButtons.add(importButton);
 
-        storeButton = new JButton(themeIconOrEmpty("store"));
+        storeButton = new JButton();
 
         storeButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(storeButton, "store");
         setThemedBackground(storeButton, "buttonBackground");
         storeButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         storeButton.setFocusPainted(false);
         storeButton.setToolTipText("Store");
         utilityIconButtons.add(storeButton);
 
-        gamesButton = new JButton(themeIconOrEmpty("games"));
+        gamesButton = new JButton();
 
         gamesButton.setPreferredSize(buttonSize);
+        registerThemedButtonIcon(gamesButton, "games");
         setThemedBackground(gamesButton, "buttonBackground");
         gamesButton.setBorder(BorderFactory.createLineBorder(buttonBorder, 1));
         gamesButton.setFocusPainted(false);
@@ -421,6 +432,16 @@ public class TCPDefaultUI extends JFrame {
         }
     }
 
+    private void registerThemedButtonIcon(AbstractButton button, String key) {
+        themedButtonIcons.put(button, key);
+        setIconIfPresent(button, key);
+    }
+
+    private void registerThemedSelectedIcon(JToggleButton button, String key) {
+        themedSelectedIcons.put(button, key);
+        setSelectedIconIfPresent(button, key);
+    }
+
     private void setLabelIconIfPresent(JLabel label, String key) {
         ImageIcon icon = themeIcon(key);
         if (icon != null) label.setIcon(scaleIcon(icon, 24, 24));
@@ -452,19 +473,8 @@ public class TCPDefaultUI extends JFrame {
     }
 
     private void applyThemeIcons() {
-        setIconIfPresent(settingsButton, "settings");
-        setIconIfPresent(previousButton, "previous");
-        setIconIfPresent(playPauseButton, "play");
-        setSelectedIconIfPresent(playPauseButton, "pause");
-        setIconIfPresent(stopButton, "stop");
-        setIconIfPresent(nextButton, "next");
-        setIconIfPresent(shuffleButton, "shuffleOff");
-        setSelectedIconIfPresent(shuffleButton, "shuffle");
-        setIconIfPresent(playlistButton, "playlist");
-        setIconIfPresent(importButton, "import");
-        setIconIfPresent(storeButton, "store");
-        setIconIfPresent(gamesButton, "games");
-        setIconIfPresent(videoToggle, "video");
+        themedButtonIcons.forEach(this::setIconIfPresent);
+        themedSelectedIcons.forEach(this::setSelectedIconIfPresent);
         setLabelIconIfPresent(volumeIcon, "volume");
 
         ImageIcon currencyIcon = themeIcon("currency");
