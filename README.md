@@ -7,19 +7,34 @@ See the [database ERD](docs/database/traffic-cone-player-erd.png) for tables, ke
 
 See the [database defense walkthrough](docs/database-defense.md) for the JDBC and SQL flow.
 
-## MySQL connection
+## First run on Windows
 
-Set `DB_USER` and `DB_PASSWORD` in the environment used to launch the player.
-For PowerShell 7, set both in the same terminal where you run Maven.
+1. Clone the repo and open its folder in VS Code.
+2. Install MySQL Server 8 and MySQL Workbench Community Edition if needed. Start
+   the local server on port 3306.
+3. In Workbench, connect as a local MySQL administrator. Open
+   [setup-mysql.sql](setup-mysql.sql) using **File → Open SQL Script** and execute
+   the whole script. It creates the schema and tables when they are missing.
+4. In Workbench's **Users and Privileges**, create a local account named
+   `tcp_java_app` for host `localhost` and choose its password. In its
+   **Schema Privileges**, grant **SELECT**, **INSERT**, **UPDATE**, and **DELETE**
+   on `trafficplayers_db`. If you already have an app account with those
+   permissions, use it.
+5. Double-click **Run Traffic Cone Player.cmd** in File Explorer. Enter the MySQL
+   app account and password at the first launch. The launcher saves the password
+   encrypted for your Windows account on this PC.
+
+Use the same launcher after editing the code. It uses an installed JDK 25 when
+available or downloads one on x64 Windows. Maven Wrapper downloads Maven and
+Maven retrieves JavaFX. The first run needs internet access for downloads.
+The player sign-in uses its own account from the `user` table.
+
+If the database login changes, run this from the repo folder in PowerShell
+to replace the saved credentials:
 
 ```powershell
-$env:DB_USER = "tcp_java_app"
-$env:DB_PASSWORD = Read-Host "MySQL password" -MaskInput
-mvn javafx:run
+& '.\Run Traffic Cone Player.cmd' -ResetDatabaseLogin
 ```
-
-Use your MySQL connection credentials here. The player sign-in uses its own
-account from the `user` table.
 
 ## Saved local media
 
