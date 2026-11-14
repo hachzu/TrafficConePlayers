@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Traffic Cone Player (MySQL)",
+            "request": "launch",
+            "mainClass": "ui.Main",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "env": {
+                "DB_USER": "tcp_java_app",
+                "DB_PASSWORD": "${input:tcpMysqlPassword}"
+            }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "tcpMysqlPassword",
+            "type": "promptString",
+            "description": "MySQL password for tcp_java_app",
+            "password": true
+        }
+    ]
+}

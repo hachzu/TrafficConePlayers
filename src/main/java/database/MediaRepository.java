@@ -8,72 +8,70 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MediaRepository {
-    public static void saveMedia(int userId, String title,
-            String mediaType, String sourceLocation) {
+    public record MediaItem(int mediaId, String title, String sourceLocation) { }
 
-        String sql = """
-                INSERT INTO media (user_id, title, media_type, source_location)
-                VALUES (?, ?, ?, ?)
-                """;
-
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, userId);
-            statement.setString(2, title);
-            statement.setString(3, mediaType);
-            statement.setString(4, sourceLocation);
-
-            statement.executeUpdate();
-            System.out.println("Media saved.");
-
-        } catch (SQLException error) {
-            error.printStackTrace();
-        }
-    }
-
-    public static List<String> loadMedia(int userId) {
-        List<String> savedMedia = new ArrayList<>();
-
-        String sql = """
-                SELECT source_location
-                FROM media
-                WHERE user_id = ?
-                ORDER BY date_added
-                """;
+    public static MediaItem saveMedia(int userId, String title, String mediaType,
+            String sourceLocation) throws SQLException {
+        String insertSql = "INSERT INTO media (user_id, title, media_type, source_location) "
+                + "VALUES (?, ?, ?, ?)";
+        String selectSql = "SELECT media_id, title, source_location FROM media "
+                + "WHERE user_id = ? AND source_location = ? ORDER BY media_id DESC";
 
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
-            statement.setInt(1, userId);
-
-            ResultSet result = statement.executeQuery();
-
-            while (result.next()) {
-                savedMedia.add(result.getString("source_location"));
+                PreparedStatement insert = connection.prepareStatement(insertSql);
+                PreparedStatement select = connection.prepareStatement(selectSql)) {
+            insert.setInt(1, userId);
+            insert.setString(2, title);
+            insert.setString(3, mediaType);
+            insert.setString(4, sourceLocation);
+            if (insert.executeUpdate() != 1) {
+                throw new SQLException("Could not save the track.");
             }
 
-        } catch (SQLException error) {
-            error.printStackTrace();
+            select.setInt(1, userId);
+            select.setString(2, sourceLocation);
+            try (ResultSet rows = select.executeQuery()) {
+                if (rows.next()) {
+                    return readMedia(rows);
+                }
+            }
         }
-
-        return savedMedia;
+        throw new SQLException("Could not read the saved track.");
     }
-        public static void deleteMedia(int userId, String sourceLocation) {
-        String sql = """
-                DELETE FROM media
-                WHERE user_id = ? AND source_location = ?
-                """;
+
+    public static List<MediaItem> loadMedia(int userId) throws SQLException {
+        String sql = "SELECT media_id, title, source_location, media_type FROM media "
+                + "WHERE user_id = ? ORDER BY date_added, media_id";
+        List<MediaItem> savedMedia = new ArrayList<>();
 
         try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(sql)) {
-
+                PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, userId);
-            statement.setString(2, sourceLocation);
-            statement.executeUpdate();
-
-        } catch (SQLException error) {
-            error.printStackTrace();
+            try (ResultSet rows = statement.executeQuery()) {
+                while (rows.next()) {
+                    String mediaType = rows.getString("media_type");
+                    if ("MP3".equals(mediaType) || "MP4".equals(mediaType)) {
+                        savedMedia.add(readMedia(rows));
+                    }
+                }
+            }
         }
+        return savedMedia;
+    }
+
+    public static void deleteMedia(int userId, int mediaId) throws SQLException {
+        String sql = "DELETE FROM media WHERE user_id = ? AND media_id = ?";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+                PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, userId);
+            statement.setInt(2, mediaId);
+            statement.executeUpdate();
+        }
+    }
+
+    private static MediaItem readMedia(ResultSet rows) throws SQLException {
+        return new MediaItem(rows.getInt("media_id"), rows.getString("title"),
+                rows.getString("source_location"));
     }
 }
