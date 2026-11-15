@@ -522,10 +522,9 @@ class Controller {
     }
 
     private void addButtonClickFeedback(AbstractButton... buttons) {
-        var clickColor = playerWindow.theme.clickColor;
-
         for (AbstractButton button : buttons) {
-            Color normalColor = button.getBackground();
+            Color[] normalColor = {button.getBackground()};
+            boolean[] showingPressed = {false};
             boolean wasOpaque = button.isOpaque();
             boolean filledNormally = button.isContentAreaFilled();
 
@@ -534,7 +533,10 @@ class Controller {
 
             button.getModel().addChangeListener(event -> {
                 boolean pressed = button.getModel().isArmed() && button.getModel().isPressed();
-                button.setBackground(pressed ? clickColor : normalColor);
+                if (pressed == showingPressed[0]) return;
+                if (pressed) normalColor[0] = button.getBackground();
+                showingPressed[0] = pressed;
+                button.setBackground(pressed ? playerWindow.theme.clickColor : normalColor[0]);
                 button.setOpaque(pressed || wasOpaque);
                 button.setContentAreaFilled(pressed || filledNormally);
             });
