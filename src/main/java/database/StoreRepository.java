@@ -40,7 +40,7 @@ public final class StoreRepository {
     }
 
     public record Preset(String title, String asset, Crate rarity) {
-        @Override public String toString() { return title; }
+        @Override public String toString() { return title + (rarity == null ? " (Custom)" : " (" + rarity.title + ")"); }
     }
 
     private static final List<Preset> PRESETS = buildPresets();
@@ -179,6 +179,16 @@ public final class StoreRepository {
                     presets.add(preset);
                 }
             }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT s.skin_name, s.skin_asset_path FROM skin s JOIN user_skin us "
+                    + "ON us.skin_id = s.skin_id WHERE us.user_id = ? AND s.skin_asset_path LIKE ? "
+                    + "ORDER BY s.skin_name")) {
+                statement.setInt(1, userId);
+                statement.setString(2, "custom:" + userId + ":%");
+                try (ResultSet rows = statement.executeQuery()) {
+                    while (rows.next()) presets.add(new Preset(rows.getString(1), rows.getString(2), null));
+                }
+            }
         }
         return presets;
     }
@@ -192,6 +202,16 @@ public final class StoreRepository {
                     return preset;
                 }
             }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT s.skin_name, s.skin_asset_path FROM skin s JOIN user_skin us "
+                    + "ON us.skin_id = s.skin_id WHERE us.user_id = ? AND us.is_equipped = 1 "
+                    + "AND s.skin_asset_path LIKE ? LIMIT 1")) {
+                statement.setInt(1, userId);
+                statement.setString(2, "custom:" + userId + ":%");
+                try (ResultSet rows = statement.executeQuery()) {
+                    if (rows.next()) return new Preset(rows.getString(1), rows.getString(2), null);
+                }
+            }
         }
         return null;
     }
@@ -202,6 +222,20 @@ public final class StoreRepository {
             try {
                 lockUser(connection, userId);
                 int skinId = preset == null ? 0 : owns(connection, userId, preset);
+                if (preset != null && preset.rarity == null
+                        && preset.asset.startsWith("custom:" + userId + ":")) {
+                    if (skinId == 0) {
+                        skinId = number(connection, "SELECT skin_id FROM skin WHERE skin_asset_path = ? "
+                                + "ORDER BY skin_id LIMIT 1 FOR UPDATE", preset.asset);
+                        if (skinId == 0) {
+                            update(connection, "INSERT INTO skin (skin_name, rarity, skin_asset_path) "
+                                    + "VALUES (?, 'COMMON', ?)", preset.title, preset.asset);
+                            skinId = number(connection, "SELECT LAST_INSERT_ID()");
+                        }
+                        update(connection, "INSERT INTO user_skin (user_id, skin_id) VALUES (?, ?)", userId, skinId);
+                    }
+                    update(connection, "UPDATE skin SET skin_name = ? WHERE skin_id = ?", preset.title, skinId);
+                }
                 if (preset != null && skinId == 0) {
                     connection.rollback();
                     return false;

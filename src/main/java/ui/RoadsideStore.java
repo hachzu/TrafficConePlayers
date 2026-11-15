@@ -3,14 +3,18 @@ package ui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GraphicsEnvironment;
 import java.awt.GridLayout;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
 
 import database.StoreRepository;
 import database.StoreRepository.Crate;
@@ -35,11 +39,12 @@ final class RoadsideStore {
         JPanel body = new JPanel(new BorderLayout(0, 12));
         body.setBackground(theme.controlBackground);
         body.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
-        body.setPreferredSize(new Dimension(850, 300));
+        body.setPreferredSize(new Dimension(920, 580));
         wallet.setIcon(Icons.load("cone.png", 24));
         wallet.setFont(player.getTitleFont());
         pity.setFont(player.getTitleFont());
-        result.setFont(player.getTitleFont());
+        result.setFont(player.getTitleFont().deriveFont(18f));
+        GraphicsEnvironment.getLocalGraphicsEnvironment().registerFont(player.getTitleFont());
         JPanel summary = new JPanel(new BorderLayout());
         summary.setBackground(theme.buttonBackground);
         summary.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
@@ -51,6 +56,7 @@ final class RoadsideStore {
         body.add(summary, BorderLayout.NORTH);
 
         JPanel cards = new JPanel(new GridLayout(1, 5, 8, 0));
+        cards.setPreferredSize(new Dimension(0, 215));
         cards.setOpaque(false);
         Color[] headers = {new Color(0xDFD4BF), new Color(0xA8DD90),
                 new Color(0xD5A5EE), new Color(0xFADB75), new Color(0xF89B9B)};
@@ -59,14 +65,17 @@ final class RoadsideStore {
             JPanel card = new JPanel(new BorderLayout(0, 6));
             card.setBackground(theme.buttonBackground);
             card.setBorder(BorderFactory.createLineBorder(theme.panelBorder, 2));
-            JLabel title = new JLabel(crate.title + " Crate", JLabel.CENTER);
+            JLabel title = new JLabel(crate.title.toUpperCase(Locale.ROOT), JLabel.CENTER);
             title.setFont(player.getTitleFont());
             title.setOpaque(true);
             title.setBackground(headers[index]);
             title.setForeground(new Color(0x261914));
             title.setBorder(BorderFactory.createEmptyBorder(8, 0, 8, 0));
             card.add(title, BorderLayout.NORTH);
-            card.add(new JLabel(Icons.load("roadside-crate.png", 74)), BorderLayout.CENTER);
+            ImageIcon crateIcon = Icons.load("crate-" + crate.name().toLowerCase(Locale.ROOT)
+                    + ".png", 112);
+            if (crateIcon == null) crateIcon = Icons.load("roadside-crate.png", 112);
+            card.add(new JLabel(crateIcon, JLabel.CENTER), BorderLayout.CENTER);
 
             JButton button = GameWindow.button(theme, Integer.toString(crate.price));
             button.setFont(player.getTitleFont());
@@ -78,11 +87,20 @@ final class RoadsideStore {
             card.add(button, BorderLayout.SOUTH);
             cards.add(card);
         }
-        body.add(cards, BorderLayout.CENTER);
-        result.setForeground(theme.buttonTextColor);
+        result.setForeground(new Color(0xF5E8D8));
         result.setOpaque(true);
-        result.setBackground(theme.buttonBackground);
-        body.add(result, BorderLayout.SOUTH);
+        result.setBackground(new Color(0x221D2D));
+        result.setHorizontalAlignment(JLabel.CENTER);
+        result.setVerticalAlignment(JLabel.CENTER);
+        result.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(theme.panelBorder, 2),
+                BorderFactory.createEmptyBorder(20, 20, 20, 20)));
+        result.setText("CHOOSE A CRATE");
+        JPanel content = new JPanel(new BorderLayout(0, 12));
+        content.setOpaque(false);
+        content.add(cards, BorderLayout.NORTH);
+        content.add(result, BorderLayout.CENTER);
+        body.add(content, BorderLayout.CENTER);
 
         window = new GameWindow(player, player, "Roadside Gacha", body);
         window.setCloseHandler(() -> {
@@ -96,6 +114,12 @@ final class RoadsideStore {
     }
 
     private void load(Crate crate) {
+        if (crate != null) {
+            Timer previous = (Timer) result.getClientProperty("revealTimer");
+            if (previous != null) previous.stop();
+            result.setIcon(null);
+            result.setText("Opening crate...");
+        }
         busy = true;
         for (JButton button : buttons) button.setEnabled(false);
 
@@ -133,18 +157,34 @@ final class RoadsideStore {
     }
 
     private void showPull(Pull pull) {
+        Timer previous = (Timer) result.getClientProperty("revealTimer");
+        if (previous != null) previous.stop();
         if (pull == null) {
             result.setText("Insufficient Cones.");
             return;
         }
-        result.setIcon(Icons.load("roadside-open.png", 26));
-        if (pull.refund() > 0) {
-            result.setToolTipText("Refund: " + pull.refund());
-        } else {
-            result.setToolTipText(null);
-        }
-        result.setText(pull.preset().title()
-                + (pull.refund() > 0 ? " · Duplicate"
-                        : " · Equip it in Settings → Themes"));
+        result.setIcon(Icons.load("roadside-open.png", 64));
+        result.setHorizontalTextPosition(JLabel.CENTER);
+        result.setVerticalTextPosition(JLabel.BOTTOM);
+        Color[] rarityColors = {new Color(0xDFD4BF), new Color(0xA8DD90),
+                new Color(0xD5A5EE), new Color(0xFADB75), new Color(0xF89B9B)};
+        result.setForeground(rarityColors[pull.preset().rarity().ordinal()]);
+        result.setText("OPENING CRATE...");
+        Timer timer = new Timer(1000, event -> {
+            String font = player.getTitleFont().getFamily();
+            result.setText("<html><center style='font-family: " + font + "'>"
+                    + "<span style='font-size:14px'>"
+                    + pull.preset().rarity().title.toUpperCase(Locale.ROOT)
+                    + "</span><br><span style='font-size:23px'>" + pull.preset().title().toUpperCase(Locale.ROOT)
+                    + "</span><br><br><span style='font-size:16px'>"
+                    + (pull.refund() > 0 ? "DUPLICATE" : "UNLOCKED")
+                    + "</span><br><span style='font-size:12px'>"
+                    + (pull.refund() > 0 ? pull.refund() + " Cones refunded"
+                            : "Equip in Settings &gt; Themes")
+                    + "</span></center></html>");
+        });
+        timer.setRepeats(false);
+        result.putClientProperty("revealTimer", timer);
+        timer.start();
     }
 }

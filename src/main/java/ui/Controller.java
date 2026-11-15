@@ -7,6 +7,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -139,6 +142,7 @@ class Controller {
         sessionStartedAt = System.nanoTime();
         localPlayer = new LocalPlayer(user.userId());
         playerWindow = new DefaultUI(localPlayer.getView());
+        playerWindow.getRootPane().putClientProperty("userId", user.userId());
         playerWindow.accountMenuItem.setText(user.username() + " (ID " + user.userId() + ")");
         updateSessionTime();
         connectControls(session);
@@ -302,7 +306,16 @@ class Controller {
             @Override
             protected PlayerTheme doInBackground() throws Exception {
                 Preset preset = StoreRepository.equipped(userId);
-                return PlayerTheme.preset(preset == null ? null : preset.asset());
+                if (preset != null && preset.rarity() == null) {
+                    String filename = preset.asset().substring(("custom:" + userId + ":").length());
+                    return PlayerTheme.load(PlayerTheme.themesDirectory().resolve("user-" + userId).resolve(filename));
+                }
+                String asset = preset == null ? null : preset.asset();
+                if (asset != null && asset.startsWith("/assets/presets/gacha/")) {
+                    asset = asset.substring(0, asset.lastIndexOf('/') + 1)
+                            + preset.title().toLowerCase(Locale.ROOT).replace(' ', '-') + ".properties";
+                }
+                return PlayerTheme.preset(asset);
             }
 
             @Override
@@ -336,6 +349,19 @@ class Controller {
                     String defaultTheme = "Original Orange";
                     choices.add(defaultTheme);
                     choices.addAll(get());
+                    try (var files = Files.list(PlayerTheme.themesDirectory())) {
+                        files.filter(Files::isRegularFile)
+                                .filter(path -> path.getFileName().toString().endsWith(".properties"))
+                                .filter(path -> !path.getFileName().toString().equalsIgnoreCase("orange.properties"))
+                                .filter(path -> choices.stream().noneMatch(choice -> choice instanceof Preset owned
+                                        && owned.asset().equals("custom:" + userId + ":" + path.getFileName())))
+                                .sorted()
+                                .forEach(path -> choices.add(new Preset(path.getFileName().toString()
+                                        .replaceFirst("\\.properties$", ""),
+                                        "legacy:" + path.getFileName(), null)));
+                    } catch (IOException error) {
+                        System.err.println("Could not list older custom themes: " + error.getMessage());
+                    }
                     Object selected = JOptionPane.showInputDialog(playerWindow,
                             "Choose a theme to equip", "Themes", JOptionPane.PLAIN_MESSAGE,
                             null, choices.toArray(), defaultTheme);
@@ -356,7 +382,29 @@ class Controller {
         new SwingWorker<PlayerTheme, Void>() {
             @Override
             protected PlayerTheme doInBackground() throws Exception {
-                PlayerTheme theme = PlayerTheme.preset(preset == null ? null : preset.asset());
+                PlayerTheme theme;
+                if (preset != null && preset.asset().startsWith("legacy:")) {
+                    String filename = preset.asset().substring("legacy:".length());
+                    theme = PlayerTheme.load(PlayerTheme.themesDirectory().resolve(filename));
+                    Path userDirectory = PlayerTheme.themesDirectory().resolve("user-" + userId);
+                    Files.createDirectories(userDirectory);
+                    Path destination = userDirectory.resolve(filename);
+                    if (!Files.exists(destination)) theme.save(destination);
+                    theme = PlayerTheme.load(destination);
+                    StoreRepository.equip(userId, new Preset(theme.themeName,
+                            "custom:" + userId + ":" + filename, null));
+                    return theme;
+                } else if (preset != null && preset.rarity() == null) {
+                    String filename = preset.asset().substring(("custom:" + userId + ":").length());
+                    theme = PlayerTheme.load(PlayerTheme.themesDirectory().resolve("user-" + userId).resolve(filename));
+                } else {
+                    String asset = preset == null ? null : preset.asset();
+                    if (asset != null && asset.startsWith("/assets/presets/gacha/")) {
+                        asset = asset.substring(0, asset.lastIndexOf('/') + 1)
+                                + preset.title().toLowerCase(Locale.ROOT).replace(' ', '-') + ".properties";
+                    }
+                    theme = PlayerTheme.preset(asset);
+                }
                 if (!StoreRepository.equip(userId, preset)) {
                     throw new SQLException("Theme is not owned.");
                 }

@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -25,6 +26,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import database.StoreRepository;
 
 final class ThemeEditor extends JDialog {
     private static final Map<String, String> COLOR_LABELS = new LinkedHashMap<>();
@@ -63,6 +65,7 @@ final class ThemeEditor extends JDialog {
     }
 
     private final DefaultUI owner;
+    private final int userId;
     private final PlayerTheme originalTheme;
     private final PlayerTheme editedTheme;
     private final JTextField nameField;
@@ -72,6 +75,7 @@ final class ThemeEditor extends JDialog {
     ThemeEditor(DefaultUI owner) {
         super(owner, "Theme settings", ModalityType.APPLICATION_MODAL);
         this.owner = owner;
+        this.userId = (Integer) owner.getRootPane().getClientProperty("userId");
         originalTheme = owner.theme.copy();
         editedTheme = owner.theme.copy();
         nameField = new JTextField(editedTheme.themeName, 18);
@@ -269,10 +273,15 @@ final class ThemeEditor extends JDialog {
                     JOptionPane.WARNING_MESSAGE);
             return;
         }
+        if (name.length() > 100) {
+            JOptionPane.showMessageDialog(this, "Use a name of 100 characters or fewer.");
+            return;
+        }
 
         String safeName = name.replaceAll("[^A-Za-z0-9._-]", "_");
         if (safeName.equals(".") || safeName.equals("..")) safeName = "custom_theme";
-        Path destination = PlayerTheme.themesDirectory().resolve(safeName + ".properties");
+        Path userDirectory = PlayerTheme.themesDirectory().resolve("user-" + userId);
+        Path destination = userDirectory.resolve(safeName + ".properties");
         if (Files.exists(destination)
                 && JOptionPane.showConfirmDialog(this, "Replace the existing theme file?",
                 "Theme already exists", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) {
@@ -282,7 +291,8 @@ final class ThemeEditor extends JDialog {
         try {
             PlayerTheme themeToSave = editedTheme.copy();
             themeToSave.themeName = name;
-            Path assetDirectory = PlayerTheme.themesDirectory().resolve(safeName);
+            Files.createDirectories(userDirectory);
+            Path assetDirectory = userDirectory.resolve(safeName);
             Path iconDirectory = assetDirectory.resolve("icons");
 
             themeToSave.backgroundImage = copyCustomAsset(
@@ -292,9 +302,11 @@ final class ThemeEditor extends JDialog {
             }
 
             themeToSave.save(destination);
+            StoreRepository.equip(userId, new StoreRepository.Preset(name,
+                    "custom:" + userId + ":" + destination.getFileName(), null));
             owner.applyTheme(PlayerTheme.load(destination));
             dispose();
-        } catch (IOException | RuntimeException error) {
+        } catch (IOException | SQLException | RuntimeException error) {
             JOptionPane.showMessageDialog(this, "Could not save theme:\n" + error.getMessage(),
                     "Save failed", JOptionPane.ERROR_MESSAGE);
         }
@@ -318,7 +330,7 @@ final class ThemeEditor extends JDialog {
         Path destination = destinationDirectory.resolve(targetName + extension);
         Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
 
-        Path themesRoot = PlayerTheme.themesDirectory();
+        Path themesRoot = PlayerTheme.themesDirectory().resolve("user-" + userId);
         return themesRoot.relativize(destination).toString().replace('\\', '/');
     }
 
